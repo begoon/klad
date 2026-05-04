@@ -9,7 +9,7 @@ puts            equ  0F818h
 scan_kbd        equ  0F81Bh
 
         lxi  sp, 00FFh
-        jmp  game_init                  ; offset game_init
+        jmp  game_init                  ; → loc_1605
         nop
         nop
 loc_0008:
