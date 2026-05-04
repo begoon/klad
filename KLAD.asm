@@ -62,7 +62,7 @@ loc_0144:
         mov  b, a
         lda  0888h
         mov  c, a
-        call 08BEh
+        call coord_to_screen
         shld 088Ah
         lda  0886h
         mov  d, a
@@ -112,7 +112,7 @@ xlat_glyph:                             ; offset loc_01A0
         lxi  h, 01B2h
         dad  d
         mov  a, m
-        sta  019Eh
+        sta  var_019E
         pop  d
         pop  h
         pop  psw
@@ -324,12 +324,12 @@ loc_08EB:
         mov  b, a
         lda  0AD5h
         mov  c, a
-        call 08BEh
+        call coord_to_screen
         mov  a, m
         cpi  02h
         jz   loc_0961
         inr  b
-        call 08BEh
+        call coord_to_screen
         mov  a, m
         ora  a
         jz   loc_0919
@@ -343,7 +343,7 @@ loc_08EB:
         jc   loc_0953
 loc_0919:
         dcr  b
-        call 08BEh
+        call coord_to_screen
         mov  a, m
         call plot_char
         inr  b
@@ -359,7 +359,7 @@ loc_092C:
         mvi  a, 13h
         call plot_char
         sta  0AD7h
-        call 08BEh
+        call coord_to_screen
         mov  a, m
         cpi  07h
         jnz  loc_0946
@@ -396,7 +396,7 @@ loc_0961:
         jmp  loc_0AD3
 loc_097F:
         dcr  c
-        call 08BEh
+        call coord_to_screen
         mov  a, m
         ora  a
         jz   loc_09D0
@@ -435,7 +435,7 @@ loc_09CB:
         jc   loc_0AD3
 loc_09D0:
         inr  c
-        call 08BEh
+        call coord_to_screen
         mov  a, m
         call plot_char
         dcr  c
@@ -446,7 +446,7 @@ loc_09D0:
         ret
 loc_09E3:
         inr  c
-        call 08BEh
+        call coord_to_screen
         mov  a, m
         ora  a
         jz   loc_0A34
@@ -485,7 +485,7 @@ loc_0A2F:
         jc   loc_0AD3
 loc_0A34:
         dcr  c
-        call 08BEh
+        call coord_to_screen
         mov  a, m
         call plot_char
         inr  c
@@ -495,12 +495,12 @@ loc_0A34:
         sta  0AD5h
         jmp  loc_0AD3
 loc_0A49:
-        call 08BEh
+        call coord_to_screen
         mov  a, m
         cpi  02h
         jnz  loc_0AD3
         dcr  b
-        call 08BEh
+        call coord_to_screen
         mov  a, m
         ora  a
         jz   loc_0A7F
@@ -522,7 +522,7 @@ loc_0A7A:
         jc   loc_0AD3
 loc_0A7F:
         inr  b
-        call 08BEh
+        call coord_to_screen
         mov  a, m
         call plot_char
         dcr  b
@@ -533,7 +533,7 @@ loc_0A7F:
         jmp  loc_0AD3
 loc_0A94:
         inr  b
-        call 08BEh
+        call coord_to_screen
         mov  a, m
         ora  a
         jz   loc_0AC1
@@ -555,7 +555,7 @@ loc_0ABC:
         jc   loc_0AD3
 loc_0AC1:
         dcr  b
-        call 08BEh
+        call coord_to_screen
         mov  a, m
         call plot_char
         inr  b
@@ -594,14 +594,14 @@ main_loop:                              ; offset loc_0AF9
         call loc_1546
         call loc_1546
         call loc_15C7
-        lda  11C3h
+        lda  var_11C3
         ora  a
         jnz  game_restart
         lda  0AD4h
         mov  b, a
         lda  0AD5h
         mov  c, a
-        call 08BEh
+        call coord_to_screen
         mov  a, m
         cpi  05h
         jz   game_restart
@@ -668,12 +668,12 @@ loc_0E4A:
         mov  b, a
         lda  0FABh
         mov  c, a
-        call 08BEh
+        call coord_to_screen
         mov  a, m
         cpi  02h
         jz   loc_0E9A
         inr  b
-        call 08BEh
+        call coord_to_screen
         mov  a, m
         ora  a
         jz   loc_0E8C
@@ -690,7 +690,7 @@ loc_0E4A:
         ora  a
         jz   loc_0E9A
         inr  b
-        call 08BEh
+        call coord_to_screen
         mov  a, m
         dcr  b
         cpi  06h
@@ -714,7 +714,7 @@ loc_0E9A:
         cmp  c
         jnc  loc_0EEB
         dcr  c
-        call 08BEh
+        call coord_to_screen
         mov  a, m
         ora  a
         jz   loc_0ED5
@@ -750,7 +750,7 @@ loc_0EEB:
         cmp  e
         jnc  loc_0F2B
         inr  c
-        call 08BEh
+        call coord_to_screen
         mov  a, m
         ora  a
         jz   loc_0F1B
@@ -780,12 +780,12 @@ loc_0F2B:
         mov  a, d
         cmp  b
         jnc  loc_0F6F
-        call 08BEh
+        call coord_to_screen
         mov  a, m
         cpi  02h
         jnz  loc_0F6F
         dcr  b
-        call 08BEh
+        call coord_to_screen
         mov  a, m
         ora  a
         jz   loc_0F5F
@@ -814,7 +814,7 @@ loc_0F6F:
         cmp  d
         jnc  loc_0FA7
         inr  b
-        call 08BEh
+        call coord_to_screen
         mov  a, m
         ora  a
         jz   loc_0F9A
@@ -907,7 +907,7 @@ loc_1004:
         mov  b, a
         lda  0FABh
         mov  c, a
-        call 08BEh
+        call coord_to_screen
         mov  a, m
         call plot_char
         lda  0FAEh
@@ -922,7 +922,7 @@ loc_1021:
         mov  b, a
         lda  0FAFh
         mov  c, a
-        call 08BEh
+        call coord_to_screen
         mov  a, m
         cpi  05h
         jnz  loc_1037
@@ -1105,14 +1105,14 @@ loc_11AC:
 loc_11B9:
         xra  a
 loc_11BA:
-        sta  11C3h
+        sta  var_11C3
         ret
 loc_11BE:
         mvi  a, 01h
         jmp  loc_11BA
 
 var_11C3:
-        db   00h                        ; 1-byte var (initial 00), modified by sta 11C3h
+        db   00h                        ; 1-byte var (initial 00), modified by sta var_11C3
 
 plot_char:                              ; offset loc_11C4
         push psw
@@ -1139,7 +1139,7 @@ loc_11E1:
 loc_11E9:
         mov  e, a
         dad  d
-        lda  019Eh
+        lda  var_019E
         mov  m, a
         pop  h
         pop  d
@@ -1217,7 +1217,7 @@ loc_13DF:
         mov  b, m
         inx  h
         mov  c, m
-        call 08BEh
+        call coord_to_screen
         mvi  a, 0Bh
         mov  m, a
         call plot_char
@@ -1229,7 +1229,7 @@ loc_13F4:
         mov  b, m
         inx  h
         mov  c, m
-        call 08BEh
+        call coord_to_screen
         mvi  a, 0Ch
         mov  m, a
         call plot_char
@@ -1241,7 +1241,7 @@ loc_1409:
         mov  b, m
         inx  h
         mov  c, m
-        call 08BEh
+        call coord_to_screen
         mvi  a, 0Dh
         mov  m, a
         call plot_char
@@ -1253,7 +1253,7 @@ loc_141E:
         mov  b, m
         inx  h
         mov  c, m
-        call 08BEh
+        call coord_to_screen
         mvi  a, 0Eh
         mov  m, a
         call plot_char
@@ -1267,7 +1267,7 @@ loc_1431:
         mov  b, m
         inx  h
         mov  c, m
-        call 08BEh
+        call coord_to_screen
         mvi  a, 10h
         mov  m, a
         call plot_char
@@ -1279,7 +1279,7 @@ loc_144B:
         mov  b, m
         inx  h
         mov  c, m
-        call 08BEh
+        call coord_to_screen
         mvi  a, 0Fh
         mov  m, a
         call plot_char
@@ -1350,14 +1350,14 @@ loc_14C0:
         lhld 159Dh
         mov  c, h
         mov  b, l
-        call 08BEh
+        call coord_to_screen
         mov  a, m
         call plot_char
         dcr  c
         mov  h, c
         mov  l, b
         shld 159Dh
-        call 08BEh
+        call coord_to_screen
         mov  a, m
         cpi  01h
         jnz  loc_14E0
@@ -1392,14 +1392,14 @@ loc_150B:
         lhld 159Fh
         mov  c, h
         mov  b, l
-        call 08BEh
+        call coord_to_screen
         mov  a, m
         call plot_char
         inr  c
         mov  l, b
         mov  h, c
         shld 159Fh
-        call 08BEh
+        call coord_to_screen
         mov  a, m
         cpi  01h
         jnz  loc_152B
@@ -1522,14 +1522,14 @@ loc_15E6:
         sta  0240h
 loc_15FF:
         mvi  a, 01h
-        sta  11C3h
+        sta  var_11C3
         ret
-game_init:                              ; offset game_init (program entry, banner + intro)
-        lxi  b, 0ADAh
+game_init:                              ; offset loc_1605 — program entry: banner, wait for key, restart
+        lxi  b, game_restart            ; return target after getc
         push b
-        lxi  h, 1612h
+        lxi  h, str_intro
         call puts
-        jmp  getc
+        jmp  getc                       ; on return, pops game_restart off stack → game_restart
 
 str_intro:                              ; offset 1612h, welcome / instructions screen (RU)
         db   1Fh, 1Bh, 59h, 22h, 36h, 17h, 20h, 20h, 17h, 20h, 20h, 20h, 17h, 17h, 17h, 20h
