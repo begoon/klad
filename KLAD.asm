@@ -19,9 +19,13 @@ tbl_00E7:                               ; offset loc_00E7 (24 bytes referenced f
         db   9Bh, 13h, 56h, 13h, 0CAh, 11h, 9Bh, 13h
         db   15h, 08h, 56h, 13h, 7Eh, 15h, 14h, 0Bh
         db   00h
+; Level loader. Reads level_num, fetches the level data pointer from
+; tbl_01D0, then loops over 5-byte records (type, r1, r2, c1, c2) filling
+; rectangles via plot_char. Terminator: type=0. Full format in README.md
+; ("Level encoding").
 loc_0100:
         mvi  c, 1Fh
-        call putc
+        call putc                       ; clear screen
         lxi  h, tbl_01D0
         xra  a
         lda  level_num
