@@ -656,16 +656,10 @@ level_1:                                ; level 1 data, 5-byte records, 0x0B35-0
         db   11h, 3Bh, 3Bh, 0Bh, 10h, 10h, 38h, 38h, 0Bh, 11h, 11h, 38h, 39h, 0Bh, 12h, 12h
         db   38h, 3Bh, 02h, 0Ah, 15h, 36h, 36h, 00h
 
-        lxi  b, 0102h
-        db   30h
-        lxi  b, 022Fh
-        ldax d
-        nop
-        nop
-        inx  b
-        lxi  b, 3A3Ch
-        xra  d
-        rrc
+        db   01h, 02h, 01h, 30h, 01h, 2Fh, 02h, 1Ah, 00h, 00h, 03h, 01h, 3Ch    ; 0E3D-0E49 unused tail / filler
+
+loc_0E4A:
+        lda  0FAAh
         mov  b, a
         lda  0FABh
         mov  c, a
@@ -840,26 +834,17 @@ loc_0F9A:
         dcr  b
 loc_0FA7:
         jmp  loc_0EE2
-        dcr  b
-        db   08h
-        nop
-        stax b
-        dcr  b
-        db   08h
-        dcr  b
-        db   08h
-        nop
-        stax b
-        nop
-        nop
-        nop
-        lxi  b, 0000h
-        nop
-        stax b
-        nop
-        nop
-        nop
-        nop
+
+actor_vars:                             ; 0FAA-0FBF actor/state vars used by routines below
+        db   05h, 08h                   ; 0FAA-0FAB word var (player target?)
+        db   00h, 02h                   ; 0FAC-0FAD bytes
+        db   05h, 08h                   ; 0FAE-0FAF word var (player position)
+        ; 0FB0-0FBF: 4 actor records, 4 bytes each (x, y, ?, ?)
+        db   05h, 08h, 00h, 02h
+        db   00h, 00h, 00h, 01h
+        db   00h, 00h, 00h, 02h
+        db   00h, 00h, 00h, 00h
+
 loc_0FC0:
         lda  0FAEh
         mov  b, a
@@ -1591,15 +1576,8 @@ loc_1896:
         call 0F809h
         pop  b
         ret
-        nop
-        nop
-        nop
-        nop
-        nop
-        nop
-        nop
-        nop
-        nop
+
+        ds   9                          ; 18A7-18AF zero pad before level data
 
 level_data:                             ; 0x18B0-0x334F: levels 0, 2-18 with inter-level filler
         ; --- level 0 (0x18B0) ---
