@@ -234,7 +234,7 @@ loc_0120:                          ; цикл записей (см. "Форма�
 
 Описание процесса обратной разработки, шпаргалка идиом и аппаратный
 справочник по РК-86 живут в репозитории навыка под
-[`rk86-skills/rk86-reversal/`](https://github.com/begoon/rk86-reversal).
+[`rk86-reversal`](https://github.com/begoon/rk86-reversal).
 
 ## Лицензия
 

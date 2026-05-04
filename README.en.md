@@ -228,7 +228,7 @@ to read the trailer, then seeds `player_x` / `player_y` and copies the
 
 The reversing workflow, idioms cookbook, and RK86 hardware reference
 live in the skill repo under
-[`rk86-skills/rk86-reversal/`](https://github.com/begoon/rk86-reversal).
+[`rk86-reversal`](https://github.com/begoon/rk86-reversal).
 
 ## License
 
