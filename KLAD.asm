@@ -1,8 +1,15 @@
         org  0000h
         section KLAD.bin
 
+; Monitor ROM jump-table entries used by this program.
+start_rom       equ  0F800h
+getc            equ  0F803h
+putc            equ  0F809h
+puts            equ  0F818h
+scan_kbd        equ  0F81Bh
+
         lxi  sp, 00FFh
-        jmp  loc_1605
+        jmp  game_init                  ; offset game_init
         nop
         nop
 loc_0008:
@@ -14,7 +21,7 @@ tbl_00E7:                               ; offset loc_00E7 (24 bytes referenced f
         db   00h
 loc_0100:
         mvi  c, 1Fh
-        call 0F809h
+        call putc
         lxi  h, 01D0h
         xra  a
         lda  0240h
@@ -34,7 +41,7 @@ loc_0120:
         mov  a, m
         ora  a
         rz
-        call loc_01A0
+        call xlat_glyph
         sta  0885h
         inx  h
         mov  a, m
@@ -76,7 +83,7 @@ loc_0144:
 loc_0174:
         lda  0885h
         stax d
-        call loc_11C4
+        call plot_char
         inx  d
         inr  c
         lda  088Dh
@@ -96,7 +103,7 @@ loc_0174:
 var_019E:
         db   09h, 00h                    ; 019E byte var (init 09), 019F pad
 
-loc_01A0:
+xlat_glyph:                             ; offset loc_01A0
         push psw
         push h
         push d
@@ -111,7 +118,7 @@ loc_01A0:
         pop  psw
         ret
 
-tbl_01B2:                               ; byte LUT for loc_01A0 (indexed by E, 30 entries)
+tbl_01B2:                               ; byte LUT for xlat_glyph (indexed by E, 30 entries)
         db   20h, 68h, 23h, 5Dh, 5Bh, 5Eh, 1Ch, 14h
         db   14h, 5Dh, 5Bh, 25h, 3Ah, 2Eh, 20h, 2Eh
         db   3Ah, 11h, 1Eh, 09h, 0Bh, 2Dh, 51h, 40h
@@ -248,10 +255,10 @@ data_01F6:                              ; 01F6-0882 (zeroed at runtime by clear_
 vars_0883:                              ; 0883-088D init values (not cleared)
         db   43h, 02h, 02h, 05h, 05h, 0Ah, 0Bh, 8Dh, 03h, 00h, 0FFh
 
-loc_088E:
+clear_state:                            ; offset loc_088E
         lxi  h, 0243h
         lxi  d, 0882h
-loc_0894:
+clear_state_loop:                       ; offset loc_0894
         xra  a
         mov  m, a
         inx  h
@@ -259,9 +266,9 @@ loc_0894:
         sub  l
         mov  a, d
         sbb  h
-        jnc  loc_0894
+        jnc  clear_state_loop
         ret
-loc_089F:
+load_level_state:                       ; offset loc_089F
         lhld 0241h
         inx  h
         lxi  d, 08B1h
@@ -277,7 +284,7 @@ loc_08A8:
 
         db   0Fh, 04h, 01h, 2Eh, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 01h, 35h    ; 08B1-08BD filler
 
-loc_08BE:                               ; called from many places: maps (B,C) → screen address
+coord_to_screen:                               ; called from many places: maps (B,C) → screen address
         push psw
         push d
         mov  a, b
@@ -338,7 +345,7 @@ loc_0919:
         dcr  b
         call 08BEh
         mov  a, m
-        call loc_11C4
+        call plot_char
         inr  b
         lda  0AD6h
         inr  a
@@ -350,7 +357,7 @@ loc_092C:
         mov  a, b
         sta  0AD4h
         mvi  a, 13h
-        call loc_11C4
+        call plot_char
         sta  0AD7h
         call 08BEh
         mov  a, m
@@ -411,7 +418,7 @@ loc_099C:
 loc_09AB:
         cpi  08h
         jnz  loc_09B6
-        call loc_1896
+        call pickup_item
         jmp  loc_09D0
 loc_09B6:
         cpi  09h
@@ -430,10 +437,10 @@ loc_09D0:
         inr  c
         call 08BEh
         mov  a, m
-        call loc_11C4
+        call plot_char
         dcr  c
         mvi  a, 13h
-        call loc_11C4
+        call plot_char
         mov  a, c
         sta  0AD5h
         ret
@@ -461,7 +468,7 @@ loc_0A00:
 loc_0A0F:
         cpi  08h
         jnz  loc_0A1A
-        call loc_1896
+        call pickup_item
         jmp  loc_0A34
 loc_0A1A:
         cpi  0Ah
@@ -480,10 +487,10 @@ loc_0A34:
         dcr  c
         call 08BEh
         mov  a, m
-        call loc_11C4
+        call plot_char
         inr  c
         mvi  a, 13h
-        call loc_11C4
+        call plot_char
         mov  a, c
         sta  0AD5h
         jmp  loc_0AD3
@@ -508,7 +515,7 @@ loc_0A49:
 loc_0A6F:
         cpi  08h
         jnz  loc_0A7A
-        call loc_1896
+        call pickup_item
         jmp  loc_0A7F
 loc_0A7A:
         cpi  0Eh
@@ -517,10 +524,10 @@ loc_0A7F:
         inr  b
         call 08BEh
         mov  a, m
-        call loc_11C4
+        call plot_char
         dcr  b
         mvi  a, 13h
-        call loc_11C4
+        call plot_char
         mov  a, b
         sta  0AD4h
         jmp  loc_0AD3
@@ -541,7 +548,7 @@ loc_0A94:
 loc_0AB1:
         cpi  08h
         jnz  loc_0ABC
-        call loc_1896
+        call pickup_item
         jmp  loc_0AC1
 loc_0ABC:
         cpi  0Eh
@@ -550,10 +557,10 @@ loc_0AC1:
         dcr  b
         call 08BEh
         mov  a, m
-        call loc_11C4
+        call plot_char
         inr  b
         mvi  a, 13h
-        call loc_11C4
+        call plot_char
         mov  a, b
         sta  0AD4h
 loc_0AD3:
@@ -563,22 +570,22 @@ var_0AD4:                               ; 0AD4-0AD9 game state vars
         db   15h, 08h                   ; 0AD4 player x, 0AD5 player y (init 15h,08h)
         db   01h, 00h                   ; 0AD6, 0AD7
         db   3Ah                        ; 0AD8 last key
-        db   00h                        ; 0AD9 counter (reset by loc_0ADA)
+        db   00h                        ; 0AD9 counter (reset by game_restart)
 
-loc_0ADA:
+game_restart:                           ; offset loc_0ADA
         xra  a
         sta  0AD9h
-        call loc_088E
+        call clear_state
         call loc_0100
-        call loc_089F
+        call load_level_state
         lda  08B1h
         sta  0AD4h
         lda  08B2h
         sta  0AD5h
         call loc_1586
         call loc_1168
-loc_0AF9:
-        call 0F81Bh
+main_loop:                              ; offset loc_0AF9
+        call scan_kbd
         sta  0AD8h
         call loc_08EB
         call loc_1039
@@ -589,7 +596,7 @@ loc_0AF9:
         call loc_15C7
         lda  11C3h
         ora  a
-        jnz  loc_0ADA
+        jnz  game_restart
         lda  0AD4h
         mov  b, a
         lda  0AD5h
@@ -597,11 +604,11 @@ loc_0AF9:
         call 08BEh
         mov  a, m
         cpi  05h
-        jz   loc_0ADA
+        jz   game_restart
         mov  a, b
         cpi  18h
-        jnc  loc_0ADA
-        jmp  loc_0AF9
+        jnc  game_restart
+        jmp  main_loop
 
 level_1:                                ; level 1 data, 5-byte records, 0x0B35-0x0E3C (775 bytes)
         db   01h, 01h, 16h, 00h, 01h, 01h, 16h, 16h, 00h, 3Fh, 01h, 01h, 14h, 03h, 03h, 01h
@@ -902,13 +909,13 @@ loc_1004:
         mov  c, a
         call 08BEh
         mov  a, m
-        call loc_11C4
+        call plot_char
         lda  0FAEh
         mov  b, a
         lda  0FAFh
         mov  c, a
         mvi  a, 14h
-        call loc_11C4
+        call plot_char
         ret
 loc_1021:
         lda  0FAEh
@@ -919,7 +926,7 @@ loc_1021:
         mov  a, m
         cpi  05h
         jnz  loc_1037
-        call loc_11C4
+        call plot_char
         xra  a
         ret
 loc_1037:
@@ -1107,11 +1114,11 @@ loc_11BE:
 var_11C3:
         db   00h                        ; 1-byte var (initial 00), modified by sta 11C3h
 
-loc_11C4:
+plot_char:                              ; offset loc_11C4
         push psw
         push d
         push h
-        call loc_01A0
+        call xlat_glyph
         lxi  h, 77BDh
         lxi  d, 004Eh
         mov  a, b
@@ -1184,7 +1191,7 @@ loc_13B0:
         lda  0AD5h
         mov  c, a
         mvi  a, 13h
-        jmp  loc_11C4
+        jmp  plot_char
 loc_13C9:
         inx  h
         mov  a, m
@@ -1213,7 +1220,7 @@ loc_13DF:
         call 08BEh
         mvi  a, 0Bh
         mov  m, a
-        call loc_11C4
+        call plot_char
         jmp  loc_13B0
 loc_13F4:
         cpi  1Eh
@@ -1225,7 +1232,7 @@ loc_13F4:
         call 08BEh
         mvi  a, 0Ch
         mov  m, a
-        call loc_11C4
+        call plot_char
         jmp  loc_13B0
 loc_1409:
         cpi  3Ch
@@ -1237,7 +1244,7 @@ loc_1409:
         call 08BEh
         mvi  a, 0Dh
         mov  m, a
-        call loc_11C4
+        call plot_char
         jmp  loc_13B0
 loc_141E:
         ori  80h
@@ -1249,7 +1256,7 @@ loc_141E:
         call 08BEh
         mvi  a, 0Eh
         mov  m, a
-        call loc_11C4
+        call plot_char
         jmp  loc_13B0
 loc_1431:
         ani  7Fh
@@ -1263,7 +1270,7 @@ loc_1431:
         call 08BEh
         mvi  a, 10h
         mov  m, a
-        call loc_11C4
+        call plot_char
         jmp  loc_13B0
 loc_144B:
         cpi  3Ch
@@ -1275,7 +1282,7 @@ loc_144B:
         call 08BEh
         mvi  a, 0Fh
         mov  m, a
-        call loc_11C4
+        call plot_char
         jmp  loc_13B0
 loc_1460:
         push psw
@@ -1345,7 +1352,7 @@ loc_14C0:
         mov  b, l
         call 08BEh
         mov  a, m
-        call loc_11C4
+        call plot_char
         dcr  c
         mov  h, c
         mov  l, b
@@ -1365,7 +1372,7 @@ loc_14E0:
         cpi  0Dh
         jz   loc_14F4
         mvi  a, 15h
-        jmp  loc_11C4
+        jmp  plot_char
 loc_14F4:
         xra  a
         sta  159Ch
@@ -1387,7 +1394,7 @@ loc_150B:
         mov  b, l
         call 08BEh
         mov  a, m
-        call loc_11C4
+        call plot_char
         inr  c
         mov  l, b
         mov  h, c
@@ -1407,7 +1414,7 @@ loc_152B:
         cpi  0Dh
         jz   loc_153F
         mvi  a, 15h
-        jmp  loc_11C4
+        jmp  plot_char
 loc_153F:
         xra  a
         sta  159Bh
@@ -1489,7 +1496,7 @@ loc_15C7:
         cpi  2Eh
         jz   loc_15E6
         cpi  3Ah
-        jz   0F800h
+        jz   start_rom
         lhld 0AD4h
         lda  08BCh
         cmp  l
@@ -1517,12 +1524,12 @@ loc_15FF:
         mvi  a, 01h
         sta  11C3h
         ret
-loc_1605:
+game_init:                              ; offset game_init (program entry, banner + intro)
         lxi  b, 0ADAh
         push b
         lxi  h, 1612h
-        call 0F818h
-        jmp  0F803h
+        call puts
+        jmp  getc
 
 str_intro:                              ; offset 1612h, welcome / instructions screen (RU)
         db   1Fh, 1Bh, 59h, 22h, 36h, 17h, 20h, 20h, 17h, 20h, 20h, 20h, 17h, 17h, 17h, 20h
@@ -1567,14 +1574,14 @@ str_intro:                              ; offset 1612h, welcome / instructions s
         db   74h, 78h, 20h, 6Bh, 6Ch, 61h, 77h, 69h, 7Bh, 61h, 6Dh, 69h, 20h, 22h, 30h, 2Dh
         db   39h, 22h, 2Eh, 00h
 
-loc_1896:
+pickup_item:                            ; offset loc_1896
         lda  0AD9h
         inr  a
         sta  0AD9h
         mvi  m, 12h
         push b
         mvi  c, 07h
-        call 0F809h
+        call putc
         pop  b
         ret
 
