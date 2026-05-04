@@ -1,0 +1,79 @@
+# Level 18  (data at 0x3250, 47 records, 235 bytes)
+
+Records (type, row_start, row_end, col_start, col_end):
+    0:   1   1  23   0   5  ; 'X'  rows 1-23 cols 0-5
+    1:   1  22  23   0  63  ; 'X'  rows 22-23 cols 0-63
+    2:   1   1  23  60  63  ; 'X'  rows 1-23 cols 60-63
+    3:   5  22  22   6   9  ; '^'  rows 22-22 cols 6-9
+    4:   5  22  22  56  59  ; '^'  rows 22-22 cols 56-59
+    5:   1  14  20  12  53  ; 'X'  rows 14-20 cols 12-53
+    6:   2  14  21  10  11  ; '#'  rows 14-21 cols 10-11
+    7:   2   4  14   6   7  ; '#'  rows 4-14 cols 6-7
+    8:   6  15  15   6   9  ; '-'  rows 15-15 cols 6-9
+    9:   5  15  15  14  31  ; '^'  rows 15-15 cols 14-31
+   10:   5  15  15  34  51  ; '^'  rows 15-15 cols 34-51
+   11:  11   4   8   8  17  ; '%'  rows 4-8 cols 8-17
+   12:   2   4   4  16  17  ; '#'  rows 4-4 cols 16-17
+   13:   1   5   7   8   9  ; 'X'  rows 5-7 cols 8-9
+   14:   1   5   6  16  17  ; 'X'  rows 5-6 cols 16-17
+   15:   7   5   7  10  15  ; '*'  rows 5-7 cols 10-15
+   16:   1   9  12   8   9  ; 'X'  rows 9-12 cols 8-9
+   17:   6   9   9  10  15  ; '-'  rows 9-9 cols 10-15
+   18:   1   9  12  16  17  ; 'X'  rows 9-12 cols 16-17
+   19:   7  10  12  10  15  ; '*'  rows 10-12 cols 10-15
+   20:   6   8   8  18  27  ; '-'  rows 8-8 cols 18-27
+   21:  11   9   9  20  21  ; '%'  rows 9-9 cols 20-21
+   22:   1  10  13  20  21  ; 'X'  rows 10-13 cols 20-21
+   23:   2  10  13  22  23  ; '#'  rows 10-13 cols 22-23
+   24:   1  13  13  24  27  ; 'X'  rows 13-13 cols 24-27
+   25:   6  14  14  30  35  ; '-'  rows 14-14 cols 30-35
+   26:   2   1  14  32  33  ; '#'  rows 1-14 cols 32-33
+   27:   6   8   8  38  47  ; '-'  rows 8-8 cols 38-47
+   28:  11   9   9  44  45  ; '%'  rows 9-9 cols 44-45
+   29:   2  10  13  42  43  ; '#'  rows 10-13 cols 42-43
+   30:   1  13  13  38  41  ; 'X'  rows 13-13 cols 38-41
+   31:   1  10  13  44  45  ; 'X'  rows 10-13 cols 44-45
+   32:  11   4   8  48  57  ; '%'  rows 4-8 cols 48-57
+   33:   2   4   4  48  49  ; '#'  rows 4-4 cols 48-49
+   34:   1   5   6  48  49  ; 'X'  rows 5-6 cols 48-49
+   35:   1   5   7  56  57  ; 'X'  rows 5-7 cols 56-57
+   36:   7   5   7  50  55  ; '*'  rows 5-7 cols 50-55
+   37:   2   4  14  58  59  ; '#'  rows 4-14 cols 58-59
+   38:   6  15  15  56  59  ; '-'  rows 15-15 cols 56-59
+   39:   1   9  12  48  57  ; 'X'  rows 9-12 cols 48-57
+   40:   6   9   9  50  55  ; '-'  rows 9-9 cols 50-55
+   41:   7  10  12  50  55  ; '*'  rows 10-12 cols 50-55
+   42:   2  14  21  54  55  ; '#'  rows 14-21 cols 54-55
+   43:  27  16  18  14  51  ; '+'  rows 16-18 cols 14-51
+   44:   1   1   1   6  31  ; 'X'  rows 1-1 cols 6-31
+   45:   1   1   1  33  59  ; 'X'  rows 1-1 cols 33-59
+   46:   0  21  32   2  24  ; END
+
+Screen (25 rows × 64 cols, ASCII rendering):
+    0123456789012345678901234567890123456789012345678901234567890123
+    0000000000111111111122222222223333333333444444444455555555556666
+ 0: 
+ 1: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX#XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+ 2: XXXXXX                          ##                          XXXX
+ 3: XXXXXX                          ##                          XXXX
+ 4: XXXXXX##%%%%%%%%##              ##              ##%%%%%%%%##XXXX
+ 5: XXXXXX##XX******XX              ##              XX******XX##XXXX
+ 6: XXXXXX##XX******XX              ##              XX******XX##XXXX
+ 7: XXXXXX##XX******%%              ##              %%******XX##XXXX
+ 8: XXXXXX##%%%%%%%%%%----------    ##    ----------%%%%%%%%%%##XXXX
+ 9: XXXXXX##XX------XX  %%          ##          %%  XX------XX##XXXX
+10: XXXXXX##XX******XX  XX##        ##        ##XX  XX******XX##XXXX
+11: XXXXXX##XX******XX  XX##        ##        ##XX  XX******XX##XXXX
+12: XXXXXX##XX******XX  XX##        ##        ##XX  XX******XX##XXXX
+13: XXXXXX##            XX##XXXX    ##    XXXX##XX            ##XXXX
+14: XXXXXX##  ##XXXXXXXXXXXXXXXXXX--##--XXXXXXXXXXXXXXXXXX##  ##XXXX
+15: XXXXXX----##XX^^^^^^^^^^^^^^^^^^XX^^^^^^^^^^^^^^^^^^XX##----XXXX
+16: XXXXXX    ##XX++++++++++++++++++++++++++++++++++++++XX##    XXXX
+17: XXXXXX    ##XX++++++++++++++++++++++++++++++++++++++XX##    XXXX
+18: XXXXXX    ##XX++++++++++++++++++++++++++++++++++++++XX##    XXXX
+19: XXXXXX    ##XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX##    XXXX
+20: XXXXXX    ##XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX##    XXXX
+21: XXXXXX    ##                                          ##    XXXX
+22: XXXXXX^^^^XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX^^^^XXXX
+23: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+24: 

@@ -1,0 +1,42 @@
+[CLS]
+[CURSOR row=2 col=22]
+\x17  \x17   \x17\x17\x17   \x17\x17\x17   \x17\x17\x17
+[CURSOR row=3 col=22]
+\x17 \x17   \x17  \x17  \x17  \x17  \x17  \x17
+[CURSOR row=4 col=22]
+\x17\x17    \x17  \x17  \x17  \x17  \x17  \x17
+[CURSOR row=5 col=22]
+\x17 \x17   \x17  \x17  \x17\x17\x17\x17  \x17  \x17
+[CURSOR row=6 col=22]
+\x17  \x17  \x17  \x17  \x17  \x17 \x17\x17\x17\x17\x17\x17
+[CURSOR row=8 col=28]
+riga * 1987
+[CURSOR row=9 col=28]
+wersiq  1.4
+[CURSOR row=10 col=22]
+awtor pujsis-puj{e |.i.
+[CURSOR row=12 col=13]
+wa{a zada~a sostoit w tom ~toby projti
+[CURSOR row=13 col=12]
+labirinty,nahodq po doroge klad-\x1e,sprqtan-
+[CURSOR row=14 col=12]
+nyj w sunduke-\x14.
+[CURSOR row=15 col=13]
+neobhodimo takve osteregatxsq l`doedow-\x0b,
+[CURSOR row=16 col=12]
+i ne utonutx w wode-^^^.
+[CURSOR row=17 col=13]
+steny,sdelannye iz derewa-%,movno lomatx
+[CURSOR row=18 col=12]
+pri pomo}i klawi{ "Q" i "^"
+[CURSOR row=19 col=13]
+wy izobravaetesx-\x09, betonnye steny-X
+[CURSOR row=20 col=12]
+dweri-] i [, mostiki- \x1c, lestnicy-#.
+[CURSOR row=21 col=13]
+uprawlqtx swoim dwiveniem wy movete pri
+[CURSOR row=22 col=12]
+pomo}i klawi{ uprawleniq kursorom,izmenqtx
+[CURSOR row=23 col=12]
+skorostx klawi{ami "0-9".
+[END]

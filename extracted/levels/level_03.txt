@@ -1,0 +1,88 @@
+# Level 3  (data at 0x1ABF, 56 records, 280 bytes)
+
+Records (type, row_start, row_end, col_start, col_end):
+    0:   1   1  23   0  63  ; 'X'  rows 1-23 cols 0-63
+    1:  14   1   1  10  11  ; ' '  rows 1-1 cols 10-11
+    2:  14   5   5   6   9  ; ' '  rows 5-5 cols 6-9
+    3:  14  17  17   6   9  ; ' '  rows 17-17 cols 6-9
+    4:  14  21  21   6  16  ; ' '  rows 21-21 cols 6-16
+    5:   7  13  13   6   9  ; '*'  rows 13-13 cols 6-9
+    6:  14   9   9  12  21  ; ' '  rows 9-9 cols 12-21
+    7:  14   5   5  18  27  ; ' '  rows 5-5 cols 18-27
+    8:  14   2   2  30  33  ; ' '  rows 2-2 cols 30-33
+    9:   7   2   2  12  15  ; '*'  rows 2-2 cols 12-15
+   10:   7  13  13  36  39  ; '*'  rows 13-13 cols 36-39
+   11:  14  13  13  24  27  ; ' '  rows 13-13 cols 24-27
+   12:  14  17  17  18  21  ; ' '  rows 17-17 cols 18-21
+   13:  14  17  17  26  39  ; ' '  rows 17-17 cols 26-39
+   14:   7  21  21  24  27  ; '*'  rows 21-21 cols 24-27
+   15:  14  21  21  30  33  ; ' '  rows 21-21 cols 30-33
+   16:   7   9   9  30  33  ; '*'  rows 9-9 cols 30-33
+   17:  14   5   5  36  39  ; ' '  rows 5-5 cols 36-39
+   18:   7   2   2  42  45  ; '*'  rows 2-2 cols 42-45
+   19:  14   9   9  42  51  ; ' '  rows 9-9 cols 42-51
+   20:  14  13  13  48  51  ; ' '  rows 13-13 cols 48-51
+   21:   7   5   5  48  51  ; '*'  rows 5-5 cols 48-51
+   22:  14   1   1  52  53  ; ' '  rows 1-1 cols 52-53
+   23:  14  17  17  48  51  ; ' '  rows 17-17 cols 48-51
+   24:   7  21  21  42  45  ; '*'  rows 21-21 cols 42-45
+   25:   7  21  21  54  57  ; '*'  rows 21-21 cols 54-57
+   26:   2   7  21   4   5  ; '#'  rows 7-21 cols 4-5
+   27:   2   2   5   4   5  ; '#'  rows 2-5 cols 4-5
+   28:   2   2   9  10  11  ; '#'  rows 2-9 cols 10-11
+   29:   2  11  13  10  11  ; '#'  rows 11-13 cols 10-11
+   30:   2  15  17  10  11  ; '#'  rows 15-17 cols 10-11
+   31:   2  19  21  10  11  ; '#'  rows 19-21 cols 10-11
+   32:   2   2   5  16  17  ; '#'  rows 2-5 cols 16-17
+   33:   2   7  13  16  17  ; '#'  rows 7-13 cols 16-17
+   34:   2  15  21  16  17  ; '#'  rows 15-21 cols 16-17
+   35:   2   2   5  22  23  ; '#'  rows 2-5 cols 22-23
+   36:   2   7  21  22  23  ; '#'  rows 7-21 cols 22-23
+   37:   2   2   9  28  29  ; '#'  rows 2-9 cols 28-29
+   38:   2  11  21  28  29  ; '#'  rows 11-21 cols 28-29
+   39:   2   2   5  34  35  ; '#'  rows 2-5 cols 34-35
+   40:   2   7   9  34  35  ; '#'  rows 7-9 cols 34-35
+   41:   2  11  13  34  35  ; '#'  rows 11-13 cols 34-35
+   42:   2  15  17  34  35  ; '#'  rows 15-17 cols 34-35
+   43:   2  19  21  34  35  ; '#'  rows 19-21 cols 34-35
+   44:   2   2  13  40  41  ; '#'  rows 2-13 cols 40-41
+   45:   2  15  21  40  41  ; '#'  rows 15-21 cols 40-41
+   46:   2   2   5  46  47  ; '#'  rows 2-5 cols 46-47
+   47:   2   7   9  46  47  ; '#'  rows 7-9 cols 46-47
+   48:   2  11  17  46  47  ; '#'  rows 11-17 cols 46-47
+   49:   2  19  21  46  47  ; '#'  rows 19-21 cols 46-47
+   50:   2   2   5  52  53  ; '#'  rows 2-5 cols 52-53
+   51:   2   7  13  52  53  ; '#'  rows 7-13 cols 52-53
+   52:   2  15  21  52  53  ; '#'  rows 15-21 cols 52-53
+   53:   7  21  21  54  57  ; '*'  rows 21-21 cols 54-57
+   54:   2   1  21  58  58  ; '#'  rows 1-21 cols 58-58
+   55:   0  21   6   1  10  ; END
+
+Screen (25 rows × 64 cols, ASCII rendering):
+    0123456789012345678901234567890123456789012345678901234567890123
+    0000000000111111111122222222223333333333444444444455555555556666
+ 0: 
+ 1: XXXXXXXXXX  XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX  XXXX#XXXXX
+ 2: XXXX##XXXX##****##XXXX##XXXX##    ##XXXX##****##XXXX##XXXX#XXXXX
+ 3: XXXX##XXXX##XXXX##XXXX##XXXX##XXXX##XXXX##XXXX##XXXX##XXXX#XXXXX
+ 4: XXXX##XXXX##XXXX##XXXX##XXXX##XXXX##XXXX##XXXX##XXXX##XXXX#XXXXX
+ 5: XXXX##    ##XXXX##    ##    ##XXXX##    ##XXXX##****##XXXX#XXXXX
+ 6: XXXXXXXXXX##XXXXXXXXXXXXXXXX##XXXXXXXXXX##XXXXXXXXXXXXXXXX#XXXXX
+ 7: XXXX##XXXX##XXXX##XXXX##XXXX##XXXX##XXXX##XXXX##XXXX##XXXX#XXXXX
+ 8: XXXX##XXXX##XXXX##XXXX##XXXX##XXXX##XXXX##XXXX##XXXX##XXXX#XXXXX
+ 9: XXXX##XXXX##    ##    ##XXXX##****##XXXX##    ##    ##XXXX#XXXXX
+10: XXXX##XXXXXXXXXX##XXXX##XXXXXXXXXXXXXXXX##XXXXXXXXXX##XXXX#XXXXX
+11: XXXX##XXXX##XXXX##XXXX##XXXX##XXXX##XXXX##XXXX##XXXX##XXXX#XXXXX
+12: XXXX##XXXX##XXXX##XXXX##XXXX##XXXX##XXXX##XXXX##XXXX##XXXX#XXXXX
+13: XXXX##****##XXXX##XXXX##    ##XXXX##****##XXXX##    ##XXXX#XXXXX
+14: XXXX##XXXXXXXXXXXXXXXX##XXXX##XXXXXXXXXXXXXXXX##XXXXXXXXXX#XXXXX
+15: XXXX##XXXX##XXXX##XXXX##XXXX##XXXX##XXXX##XXXX##XXXX##XXXX#XXXXX
+16: XXXX##XXXX##XXXX##XXXX##XXXX##XXXX##XXXX##XXXX##XXXX##XXXX#XXXXX
+17: XXXX##    ##XXXX##    ##XX  ##    ##    ##XXXX##    ##XXXX#XXXXX
+18: XXXX##XXXXXXXXXX##XXXX##XXXX##XXXXXXXXXX##XXXXXXXXXX##XXXX#XXXXX
+19: XXXX##XXXX##XXXX##XXXX##XXXX##XXXX##XXXX##XXXX##XXXX##XXXX#XXXXX
+20: XXXX##XXXX##XXXX##XXXX##XXXX##XXXX##XXXX##XXXX##XXXX##XXXX#XXXXX
+21: XXXX##    ##    ##XXXX##****##    ##XXXX##****##XXXX##****#XXXXX
+22: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+23: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+24: 
