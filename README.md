@@ -1,198 +1,203 @@
-# KLAD disassembly
+# Дизассемблирование игры КЛАД
 
-*[По-русски](README.ru.md)*
+*[In English](README.en.md)*
 
-Reverse-engineered Intel 8080 source for `tape/KLAD.RK`, the 1987 RK86
-maze game **КЛАД** ("treasure") by E. Puysis-Puyshe (Riga, version 1.4).
-The program loads at `org 0000h`. `KLAD.asm` assembles to a byte-exact
-reproduction of the tape; verified by `just ci`.
+Восстановленный исходник на ассемблере Intel 8080 для `tape/KLAD.RK` —
+лабиринт-игры **КЛАД** для Радио-86РК (1987 г., версия 1.4, автор
+Э. Пуйсис-Пуйше, Рига). Программа загружается по адресу `org 0000h`.
+`KLAD.asm` ассемблируется в побайтно идентичную копию ленты;
+проверяется командой `just ci`.
 
-▶ **Play the original in your browser**:
+▶ **Запустить оригинал в браузере**:
 [rk86.ru/index.html?run=KLAD.RK](https://rk86.ru/index.html?run=KLAD.RK)
 
-## Preview
+## Превью
 
-| Title screen                   | Level 0                          |
+| Заставка                       | Уровень 0                        |
 |--------------------------------|----------------------------------|
-| ![menu](KLAD.RK-menu.png)      | ![game](KLAD.RK-game.png)        |
+| ![меню](KLAD.RK-menu.png)      | ![игра](KLAD.RK-game.png)        |
 
-The title screen is the welcome / instructions text rendered from the
-single 644-byte string at `0x1612` (decoded in
-[`extracted/intro.screen.txt`](extracted/intro.screen.txt)). Level 0 is
-drawn from the 41 records starting at `0x18B0` (full record list and an
-ASCII rendering in
+Заставка — это текст приветствия и инструкции, отрендеренный из
+одной строки в 644 байта по адресу `0x1612` (декодирована в
+[`extracted/intro.screen.txt`](extracted/intro.screen.txt)). Уровень 0
+рисуется из 41 записи, начиная с `0x18B0` (полный список записей и
+ASCII-рендер — в
 [`extracted/levels/level_00.txt`](extracted/levels/level_00.txt)).
 
-## Purpose
+## Цель проекта
 
-This is a study project. The goal is to learn how a small i8080 game
-from 1987 was put together — its level encoding, its tile renderer, its
-actor AI, the way it threads sound through the cassette PPI — by taking
-the tape image apart byte-for-byte and rebuilding it as readable source
-that round-trips back to the same bytes.
+Это учебный проект. Задача — разобраться, как устроена небольшая игра
+1987 года для i8080: формат уровней, отрисовка плиток, поведение
+противников, как через PPI магнитофона выводится звук, — разобрав
+ленту байт за байтом и собрав её обратно в читаемый источник, который
+ассемблируется в те же самые байты.
 
-**All rights to the original game КЛАД (level designs, on-screen text,
-program code) remain with the original author E. Puysis-Puyshe.** The
-tape image included here is used solely for reverse-engineering study.
-The MIT license in [`LICENSE`](LICENSE) covers only the new work in
-this repository (annotated source, scripts, documentation, extracted
-text dumps).
+**Все права на оригинальную игру КЛАД (дизайн уровней, экранные
+тексты, программный код) принадлежат автору, Э. Пуйсису-Пуйше.**
+Образ ленты используется здесь исключительно для изучения и обратной
+инженерии. Лицензия MIT в файле [`LICENSE`](LICENSE) распространяется
+только на новую работу в этом репозитории — аннотированный исходник,
+скрипты, документацию и текстовые выгрузки.
 
-## Layout
+## Структура
 
 ```text
-tape/KLAD.RK           original tape file (do not modify)
-KLAD.bin               extracted payload (regenerable from tape)
-KLAD.asm               annotated source (the actual work product)
-disasm.py              linear i8080 disassembler
-tobin.py               tape envelope stripper
-extract.py             dumps intro string and level maps as text
-Justfile               build/test pipeline
-extracted/             text dumps from extract.py
-  intro.screen.txt     decoded welcome screen (Cyrillic)
-  intro.raw.txt        same with control codes annotated
-  glyph_lut.txt        type code → glyph table
-  levels/level_NN.txt  ASCII rendering of each level
+tape/KLAD.RK           оригинальный файл ленты (не изменять)
+KLAD.bin               извлечённая полезная нагрузка (можно пересоздать из ленты)
+KLAD.asm               аннотированный исходник (основной результат работы)
+disasm.py              линейный дизассемблер i8080
+tobin.py               распаковщик "обёртки" ленты
+extract.py             выгрузка приветствия и карт уровней в текст
+Justfile               сборка / проверка
+extracted/             текстовые выгрузки от extract.py
+  intro.screen.txt     декодированный экран приветствия (кириллица)
+  intro.raw.txt        он же с раскрытыми управляющими кодами
+  glyph_lut.txt        таблица "тип → глиф"
+  levels/level_NN.txt  ASCII-рендер каждого уровня
 ```
 
-## Common commands
+## Команды
 
 ```bash
-just ci                # assemble KLAD.asm and byte-diff vs the tape
-                       # empty diff = green
-just initial           # rebuild KLAD.bin from tape/ (rare)
-just disasm            # regenerate KLAD.asm from KLAD.bin
-                       # WARNING: overwrites your annotations — commit first
-just clean             # remove generated files
-python3 extract.py     # regenerate everything under extracted/
+just ci                # ассемблирует KLAD.asm и сравнивает байты с лентой
+                       # пустой diff = всё в порядке
+just initial           # пересобрать KLAD.bin из tape/ (редко)
+just disasm            # пересоздать KLAD.asm из KLAD.bin
+                       # ВНИМАНИЕ: затирает ваши пометки — закоммитьте сначала
+just clean             # удалить сгенерированные файлы
+python3 extract.py     # пересобрать всё под extracted/
 ```
 
-## Status
+## Статус
 
-- [x] Pass 0 — round-trip baseline (linear disasm + `--trailer-padding 1`
-      for the off-by-1 encoder quirk in this tape)
-- [x] Pass 1 — code/data split (level data, intro string, BSS, actor
-      table, scratch vars all separated)
-- [x] Pass 2 — semantic labels (entry points renamed; every variable
-      lives at its actual address with a name)
-- [ ] Pass 3 — full annotation (most routines still `loc_XXXX`)
+- [x] Проход 0 — побайтное соответствие (линейный дизасм + `--trailer-padding 1`
+      из-за off-by-1 в кодировщике этой ленты)
+- [x] Проход 1 — разделение кода и данных (уровни, строка приветствия,
+      BSS, таблица акторов, рабочие переменные — всё по своим местам)
+- [x] Проход 2 — семантические метки (точки входа переименованы; каждая
+      переменная стоит на своём адресе со своим именем)
+- [ ] Проход 3 — полная аннотация (большинство процедур ещё `loc_XXXX`)
 
-## Tape quirk
+## Особенность ленты
 
-The original encoder wrote `end_addr = 334Fh` but appended one extra
-byte before the trailer, leaving 1 zero between the declared payload
-end and `E6 cs_hi cs_lo`. The asm is trimmed to 13136 bytes and
-`bunx asm8080 --trailer-padding 1` reproduces that gap.
+Оригинальный кодировщик записал `end_addr = 334Fh`, но добавил один
+лишний байт перед трейлером, оставив 1 нулевой байт между концом
+объявленной нагрузки и `E6 cs_hi cs_lo`. Исходник усечён до 13136
+байт, а `bunx asm8080 --trailer-padding 1` воспроизводит этот зазор.
 
-## Level encoding
+## Формат уровня
 
-Each level is a stream of 5-byte records that the renderer at
-`loc_0144` interprets as filled rectangles, plus a 13-byte trailer
-holding spawn metadata. The whole format is:
+Каждый уровень — это поток 5-байтных записей, которые рендерер в
+`loc_0144` интерпретирует как заполненные прямоугольники, плюс
+13-байтный "хвост" с метаданными старта. Полный формат:
 
-### Pointer table (`tbl_01D0`)
+### Таблица указателей (`tbl_01D0`)
 
-19 little-endian word pointers at `0x01D0`, indexed by `level_num × 2`:
+19 little-endian слов-указателей по адресу `0x01D0`, индексируется
+как `level_num × 2`:
 
 ```asm
 tbl_01D0:
-        dw   level_0      ; entry 0  (0x18B0)
-        dw   level_1      ; entry 1  (0x0B35 — parked in a gap)
-        dw   level_2      ; entry 2  (0x1987)
+        dw   level_0      ; вход 0  (0x18B0)
+        dw   level_1      ; вход 1  (0x0B35 — спрятан в "дырке")
+        dw   level_2      ; вход 2  (0x1987)
         ...
-        dw   level_18     ; entry 18 (0x3250)
+        dw   level_18     ; вход 18 (0x3250)
 ```
 
-Levels 0 and 2–18 sit contiguously in `0x18B0–0x334F`. Level 1 lives
-back at `0x0B35`, in the dead space between the game loop (ends
-`0x0B34`) and the helper routine at `0x0E4A` — presumably stuffed
-there because the late-address block ran out of room.
+Уровни 0 и 2–18 идут подряд в `0x18B0–0x334F`. Уровень 1 живёт
+обособленно в `0x0B35`, в "мёртвой зоне" между главным циклом
+(заканчивается в `0x0B34`) и подпрограммой по `0x0E4A` — видимо,
+автор пристроил его туда, когда поздний адресный блок переполнился.
 
-### Record format
+### Формат записи
 
-Each record is 5 bytes:
+Каждая запись — 5 байт:
 
 ```text
-+0  type       index into tbl_01B2 → glyph byte
-+1  row_start  inclusive (0..23)
-+2  row_end    inclusive
-+3  col_start  inclusive (0..63)
-+4  col_end    inclusive
++0  type       индекс в tbl_01B2 → байт глифа
++1  row_start  начальная строка, включительно (0..23)
++2  row_end    конечная строка, включительно
++3  col_start  начальный столбец, включительно (0..63)
++4  col_end    конечный столбец, включительно
 ```
 
-The renderer fills the rectangle (rs..re, cs..ce) with the type's
-glyph, writing to both video memory (via `plot_char`) and the in-RAM
-shadow `maze_map` (so collision tests can read cell state). A record
-where `type == 0` ends the stream.
+Рендерер заполняет прямоугольник (rs..re, cs..ce) глифом данного
+типа, записывая и в видеопамять (через `plot_char`), и в теневую
+карту в RAM `maze_map` (чтобы тесты столкновений могли читать
+состояние клеток). Запись с `type == 0` завершает поток.
 
-### Type codes (`tbl_01B2`)
+### Коды типов (`tbl_01B2`)
 
-The 30-byte LUT at `0x01B2` translates record type → display byte:
+30-байтная таблица перекодировки по адресу `0x01B2` переводит код
+типа в байт, выводимый на экран:
 
-| Type   | Glyph | Meaning                              |
-|--------|-------|--------------------------------------|
-| 0      | —     | terminator                           |
-| 1      | Х     | concrete wall (indestructible)       |
-| 2      | #     | ladder                               |
-| 3      | ]     | door (closing)                       |
-| 4      | [     | door (opening)                       |
-| 5      | ^     | water                                |
-| 6      | ─     | bridge                               |
-| 7, 8   | ▄     | chest (treasure container)           |
-| 11     | %     | wood wall (breakable with Q / ^)     |
-| 18     | ⌐     | gold piece (klad)                    |
-| 19     | ✿     | player                               |
-| 20     | ↑     | ice eater (monster)                  |
+| Тип    | Глиф  | Значение                                       |
+|--------|-------|------------------------------------------------|
+| 0      | —     | завершитель потока                             |
+| 1      | Х     | бетонная стена (неразрушимая)                  |
+| 2      | #     | лестница                                       |
+| 3      | ]     | дверь (закрывающаяся)                          |
+| 4      | [     | дверь (открывающаяся)                          |
+| 5      | ^     | вода                                           |
+| 6      | ─     | мостик                                         |
+| 7, 8   | ▄     | сундук                                         |
+| 11     | %     | деревянная стена (ломается клавишами Q / ^)    |
+| 18     | ⌐     | золотая монета (клад)                          |
+| 19     | ✿     | игрок                                          |
+| 20     | ↑     | людоед                                         |
 
-Plus a few entries used for scoreboard / decor glyphs.
+Плюс несколько записей под глифы счёта и оформления.
 
-### Per-level trailer (13 bytes)
+### Хвост уровня (13 байт)
 
-Immediately after the `type=0` byte, `load_level_state` copies 13 bytes
-into the live state vars at `0x08B1..0x08BD`:
+Сразу за байтом `type=0` подпрограмма `load_level_state` копирует 13
+байт в "живые" переменные по адресам `0x08B1..0x08BD`:
 
 ```text
-+0    player_x_init     (re-uses the terminator record's row_start slot)
-+1    player_y_init     (terminator record's row_end slot)
++0    player_x_init     (использует слот row_start завершающей записи)
++1    player_y_init     (слот row_end завершающей записи)
 +2..3 actor0_init       \
-+4..5 actor1_init        | word-pair init xy for up to 4 monsters
++4..5 actor1_init        | пары word — стартовые xy до 4 акторов
 +6..7 actor2_init        |
 +8..9 actor3_init       /
-+A    actor_count       how many of the 4 actors are active
-+B    goal_x            chest target column
-+C    goal_y            chest target row
++A    actor_count       сколько из 4 акторов активны
++B    goal_x            столбец сундука
++C    goal_y            строка сундука
 ```
 
-The first 4 trailer bytes ride along as parameters of the terminator
-record (so the end-marker doubles as the spawn point); the remaining
-9 bytes sit in the gap before the next level pointer.
+Первые 4 байта хвоста "едут" как параметры завершающей записи
+(то есть метка конца уровня одновременно служит точкой появления
+игрока); остальные 9 байт лежат в зазоре до начала следующего
+уровня.
 
-### Worked example: level 0
+### Пример: уровень 0
 
 ```asm
 level_0:                                  ; 0x18B0
-        db   01h, 01h, 17h, 00h, 03h      ; wall   rows 1-23  cols  0-3   (left edge)
-        db   01h, 16h, 17h, 00h, 3Fh      ; wall   rows 22-23 cols  0-63  (bottom)
-        db   01h, 01h, 17h, 3Ch, 3Fh      ; wall   rows 1-23  cols 60-63  (right edge)
-        db   05h, 16h, 16h, 12h, 3Bh      ; water  row 22     cols 18-59
-        db   02h, 12h, 15h, 0Eh, 0Fh      ; ladder rows 18-21 cols 14-15
-        db   0Bh, 12h, 12h, 0Ah, 0Dh      ; wood   row 18     cols 10-13
-        db   07h, 11h, 11h, 0Ah, 0Ah      ; chest  row 17     col  10
+        db   01h, 01h, 17h, 00h, 03h      ; стена  стр 1-23  стлб  0-3   (левый край)
+        db   01h, 16h, 17h, 00h, 3Fh      ; стена  стр 22-23 стлб  0-63  (низ)
+        db   01h, 01h, 17h, 3Ch, 3Fh      ; стена  стр 1-23  стлб 60-63  (правый край)
+        db   05h, 16h, 16h, 12h, 3Bh      ; вода   стр 22    стлб 18-59
+        db   02h, 12h, 15h, 0Eh, 0Fh      ; лест.  стр 18-21 стлб 14-15
+        db   0Bh, 12h, 12h, 0Ah, 0Dh      ; дерево стр 18    стлб 10-13
+        db   07h, 11h, 11h, 0Ah, 0Ah      ; сундук стр 17    стлб  10
         ...
-        db   00h                          ; terminator (type=0)
-        db   0Fh, 04h                     ; player spawn at (15, 4)
-        db   01h, 2Eh, 00h, 00h, ...      ; actor / goal trailer
+        db   00h                          ; завершитель (type=0)
+        db   0Fh, 04h                     ; старт игрока (15, 4)
+        db   01h, 2Eh, 00h, 00h, ...      ; хвост: акторы / цель
 ```
 
-Run `python3 extract.py` and read `extracted/levels/level_00.txt` to
-see the full record list and an ASCII rendering.
+Запустите `python3 extract.py` и посмотрите
+`extracted/levels/level_00.txt` — там полный список записей и
+ASCII-рендер.
 
-### Loader (`loc_0100`)
+### Загрузчик (`loc_0100`)
 
 ```asm
 loc_0100:
         mvi  c, 1Fh
-        call putc                  ; clear screen
+        call putc                  ; очистить экран
         lxi  h, tbl_01D0
         xra  a
         lda  level_num
@@ -207,29 +212,30 @@ loc_0100:
         sta  level_ptr+1
         lxi  h, maze_map
         shld maze_map_base
-loc_0120:                          ; record loop (see Record format above)
+loc_0120:                          ; цикл записей (см. "Формат записи")
         ...
 ```
 
-After the record loop returns, `game_restart` calls `load_level_state`
-to read the trailer, then seeds `player_x` / `player_y` and copies the
-4 actor init positions into the live `actor0..actor3` records.
+После возврата из цикла записей `game_restart` вызывает
+`load_level_state` для чтения хвоста, затем заполняет `player_x` /
+`player_y` и копирует 4 стартовые позиции акторов в "живые"
+структуры `actor0..actor3`.
 
-## Tools
+## Инструменты
 
-- `bunx asm8080` — assembler (<https://github.com/begoon/asm8>)
-- `python3` — for `disasm.py`, `tobin.py`, `extract.py`
-- `just` — task runner
-- `xxd` and `diff` — round-trip verification
+- `bunx asm8080` — ассемблер (<https://github.com/begoon/asm8>)
+- `python3` — для `disasm.py`, `tobin.py`, `extract.py`
+- `just` — менеджер задач
+- `xxd` и `diff` — проверка побайтного соответствия
 
-## Reference
+## Справочные материалы
 
-The reversing workflow, idioms cookbook, and RK86 hardware reference
-live in the skill repo under
+Описание процесса обратной разработки, шпаргалка идиом и аппаратный
+справочник по РК-86 живут в репозитории навыка под
 [`rk86-skills/rk86-reversal/`](https://github.com/begoon/rk86-reversal).
 
-## License
+## Лицензия
 
-[MIT](LICENSE) for the reverse-engineering work in this repository.
-All rights to the original 1987 game КЛАД remain with its author
-E. Puysis-Puyshe.
+[MIT](LICENSE) — на работу по обратной инженерии в этом репозитории.
+Все права на оригинальную игру КЛАД 1987 года остаются за её
+автором, Э. Пуйсисом-Пуйше.
