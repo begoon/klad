@@ -1,0 +1,35 @@
+MIT License
+
+Copyright (c) 2026 Alexander Demin
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+The MIT License above covers the *reverse-engineering work in this
+repository* — the annotated `KLAD.asm`, the helper scripts (`extract.py`,
+`disasm.py`, `tobin.py`), the `Justfile`, the extracted text dumps under
+`extracted/`, and the documentation.
+
+The original game **КЛАД** (1987, version 1.4) is the work of E. Puysis-Puyshe
+(Riga, Latvian SSR). All rights to the original program, its level designs,
+and its on-screen text remain with the original author. The tape image
+`tape/KLAD.RK` is included for reverse-engineering study only; this project
+makes no claim of ownership over it. If you are the author or a rights
+holder and wish for the tape image to be removed, please open an issue.

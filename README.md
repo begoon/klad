@@ -1,9 +1,42 @@
 # KLAD disassembly
 
+*[По-русски](README.ru.md)*
+
 Reverse-engineered Intel 8080 source for `tape/KLAD.RK`, the 1987 RK86
 maze game **КЛАД** ("treasure") by E. Puysis-Puyshe (Riga, version 1.4).
 The program loads at `org 0000h`. `KLAD.asm` assembles to a byte-exact
 reproduction of the tape; verified by `just ci`.
+
+▶ **Play the original in your browser**:
+[rk86.ru/index.html?run=KLAD.RK](https://rk86.ru/index.html?run=KLAD.RK)
+
+## Preview
+
+| Title screen                   | Level 0                          |
+|--------------------------------|----------------------------------|
+| ![menu](KLAD.RK-menu.png)      | ![game](KLAD.RK-game.png)        |
+
+The title screen is the welcome / instructions text rendered from the
+single 644-byte string at `0x1612` (decoded in
+[`extracted/intro.screen.txt`](extracted/intro.screen.txt)). Level 0 is
+drawn from the 41 records starting at `0x18B0` (full record list and an
+ASCII rendering in
+[`extracted/levels/level_00.txt`](extracted/levels/level_00.txt)).
+
+## Purpose
+
+This is a study project. The goal is to learn how a small i8080 game
+from 1987 was put together — its level encoding, its tile renderer, its
+actor AI, the way it threads sound through the cassette PPI — by taking
+the tape image apart byte-for-byte and rebuilding it as readable source
+that round-trips back to the same bytes.
+
+**All rights to the original game КЛАД (level designs, on-screen text,
+program code) remain with the original author E. Puysis-Puyshe.** The
+tape image included here is used solely for reverse-engineering study.
+The MIT license in [`LICENSE`](LICENSE) covers only the new work in
+this repository (annotated source, scripts, documentation, extracted
+text dumps).
 
 ## Layout
 
@@ -192,4 +225,11 @@ to read the trailer, then seeds `player_x` / `player_y` and copies the
 ## Reference
 
 The reversing workflow, idioms cookbook, and RK86 hardware reference
-live in the skill repo under `rk86-skills/rk86-reversal/`.
+live in the skill repo under
+[`rk86-skills/rk86-reversal/`](https://github.com/begoon/rk86-reversal).
+
+## License
+
+[MIT](LICENSE) for the reverse-engineering work in this repository.
+All rights to the original 1987 game КЛАД remain with its author
+E. Puysis-Puyshe.
