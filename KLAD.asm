@@ -125,25 +125,25 @@ tbl_01B2:                               ; byte LUT for xlat_glyph (indexed by E,
         db   26h, 2Ah, 3Dh, 2Bh, 3Eh, 3Ch
 
 tbl_01D0:                               ; 19 word pointers, indexed by level number*2
-        dw   18B0h                          ; entry 0
-        dw   0B35h                          ; entry 1
-        dw   1987h                          ; entry 2
-        dw   1ABFh                          ; entry 3
-        dw   1BE0h                          ; entry 4
-        dw   1DECh                          ; entry 5
-        dw   1FD0h                          ; entry 6
-        dw   21C8h                          ; entry 7
-        dw   2267h                          ; entry 8
-        dw   2473h                          ; entry 9
-        dw   2600h                          ; entry 10
-        dw   2810h                          ; entry 11
-        dw   29D0h                          ; entry 12
-        dw   2AB0h                          ; entry 13
-        dw   2C40h                          ; entry 14
-        dw   2D30h                          ; entry 15
-        dw   2E50h                          ; entry 16
-        dw   2FB0h                          ; entry 17
-        dw   3250h                          ; entry 18
+        dw   level_0                       ; entry 0 (was 18B0h)
+        dw   level_1                       ; entry 1 (was 0B35h)
+        dw   level_2                       ; entry 2 (was 1987h)
+        dw   level_3                       ; entry 3 (was 1ABFh)
+        dw   level_4                       ; entry 4 (was 1BE0h)
+        dw   level_5                       ; entry 5 (was 1DECh)
+        dw   level_6                       ; entry 6 (was 1FD0h)
+        dw   level_7                       ; entry 7 (was 21C8h)
+        dw   level_8                       ; entry 8 (was 2267h)
+        dw   level_9                       ; entry 9 (was 2473h)
+        dw   level_10                       ; entry 10 (was 2600h)
+        dw   level_11                       ; entry 11 (was 2810h)
+        dw   level_12                       ; entry 12 (was 29D0h)
+        dw   level_13                       ; entry 13 (was 2AB0h)
+        dw   level_14                       ; entry 14 (was 2C40h)
+        dw   level_15                       ; entry 15 (was 2D30h)
+        dw   level_16                       ; entry 16 (was 2E50h)
+        dw   level_17                       ; entry 17 (was 2FB0h)
+        dw   level_18                       ; entry 18 (was 3250h)
 
 data_01F6:                              ; 01F6-023F filler (zeroed at runtime by clear_state)
         db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
@@ -1646,7 +1646,7 @@ pickup_item:                            ; offset loc_1896
         ds   9                          ; 18A7-18AF zero pad before level data
 
 level_data:                             ; 0x18B0-0x334F: levels 0, 2-18 with inter-level filler
-        ; --- level 0 (0x18B0) ---
+level_0:                                ; 0x18B0 (records below)
         db   01h, 01h, 17h, 00h, 03h, 01h, 16h, 17h, 00h, 3Fh, 01h, 01h, 17h, 3Ch, 3Fh, 05h
         db   16h, 16h, 12h, 3Bh, 02h, 12h, 15h, 0Eh, 0Fh, 0Bh, 12h, 12h, 0Ah, 0Dh, 07h, 11h
         db   11h, 0Ah, 0Ah, 0Bh, 12h, 12h, 10h, 19h, 02h, 0Eh, 11h, 14h, 15h, 0Bh, 0Eh, 0Eh
@@ -1662,7 +1662,7 @@ level_data:                             ; 0x18B0-0x334F: levels 0, 2-18 with int
         db   02h, 35h, 35h, 02h, 03h, 05h, 0Ah, 0Bh, 00h
         ; (gap 0x1979-0x1986)
         db   0Fh, 04h, 01h, 2Eh, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 01h, 35h, 00h
-        ; --- level 2 (0x1987) ---
+level_2:                                ; 0x1987 (records below)
         db   01h, 01h, 17h, 00h, 03h, 01h, 15h, 17h, 00h, 3Fh, 01h, 01h, 17h, 3Ah, 3Fh, 05h
         db   15h, 16h, 08h, 39h, 01h, 15h, 15h, 0Ch, 0Dh, 01h, 15h, 15h, 12h, 13h, 01h, 15h
         db   15h, 18h, 19h, 01h, 15h, 15h, 1Eh, 1Fh, 01h, 15h, 15h, 24h, 25h, 01h, 15h, 15h
@@ -1684,7 +1684,7 @@ level_data:                             ; 0x18B0-0x334F: levels 0, 2-18 with int
         db   30h, 31h, 08h, 09h, 09h, 1Eh, 1Eh, 00h
         ; (gap 0x1AAF-0x1ABE)
         db   07h, 04h, 01h, 0Dh, 01h, 30h, 00h, 00h, 00h, 00h, 02h, 01h, 3Ah, 00h, 00h, 00h
-        ; --- level 3 (0x1ABF) ---
+level_3:                                ; 0x1ABF (records below)
         db   01h, 01h, 17h, 00h, 3Fh, 0Eh, 01h, 01h, 0Ah, 0Bh, 0Eh, 05h, 05h, 06h, 09h, 0Eh
         db   11h, 11h, 06h, 09h, 0Eh, 15h, 15h, 06h, 10h, 07h, 0Dh, 0Dh, 06h, 09h, 0Eh, 09h
         db   09h, 0Ch, 15h, 0Eh, 05h, 05h, 12h, 1Bh, 0Eh, 02h, 02h, 1Eh, 21h, 07h, 02h, 02h
@@ -1705,7 +1705,7 @@ level_data:                             ; 0x18B0-0x334F: levels 0, 2-18 with int
         db   15h, 3Ah, 3Ah, 00h
         ; (gap 0x1BD3-0x1BDF)
         db   15h, 06h, 01h, 0Ah, 01h, 34h, 00h, 00h, 00h, 00h, 02h, 01h, 3Ah
-        ; --- level 4 (0x1BE0) ---
+level_4:                                ; 0x1BE0 (records below)
         db   01h, 01h, 17h, 00h, 03h, 01h, 16h, 17h, 00h, 3Fh, 01h, 01h, 17h, 3Ah, 3Fh, 01h
         db   0Ah, 0Ah, 00h, 3Fh, 01h, 0Eh, 0Eh, 00h, 3Fh, 01h, 12h, 12h, 00h, 3Fh, 0Bh, 01h
         db   02h, 04h, 37h, 06h, 03h, 03h, 0Ch, 35h, 01h, 06h, 06h, 08h, 3Ah, 01h, 0Bh, 0Ch
@@ -1740,7 +1740,7 @@ level_data:                             ; 0x18B0-0x334F: levels 0, 2-18 with int
         db   03h, 03h, 32h, 33h, 01h, 04h, 05h, 32h, 33h, 0Eh, 07h, 07h, 34h, 35h, 00h
         ; (gap 0x1DDF-0x1DEB)
         db   15h, 04h, 04h, 16h, 07h, 34h, 00h, 00h, 00h, 00h, 02h, 01h, 3Ah
-        ; --- level 5 (0x1DEC) ---
+level_5:                                ; 0x1DEC (records below)
         db   01h, 01h, 17h, 00h, 03h, 0Bh, 16h, 17h, 04h, 3Bh, 01h, 01h, 17h, 3Ch, 3Fh, 01h
         db   07h, 10h, 08h, 37h, 05h, 07h, 07h, 0Ch, 11h, 19h, 08h, 08h, 0Ah, 13h, 19h, 09h
         db   0Fh, 0Ah, 0Bh, 19h, 09h, 0Fh, 12h, 13h, 19h, 0Ch, 0Dh, 0Ah, 13h, 05h, 07h, 07h
@@ -1773,7 +1773,7 @@ level_data:                             ; 0x18B0-0x334F: levels 0, 2-18 with int
         db   3Bh, 02h, 15h, 15h, 3Ah, 3Bh, 00h
         ; (gap 0x1FC3-0x1FCF)
         db   15h, 04h, 00h, 07h, 00h, 38h, 00h, 00h, 00h, 00h, 02h, 01h, 20h
-        ; --- level 6 (0x1FD0) ---
+level_6:                                ; 0x1FD0 (records below)
         db   01h, 01h, 17h, 00h, 03h, 01h, 16h, 17h, 00h, 3Fh, 01h, 01h, 17h, 3Ch, 3Fh, 05h
         db   16h, 16h, 1Ch, 23h, 06h, 02h, 02h, 18h, 27h, 02h, 02h, 15h, 1Ah, 1Bh, 02h, 02h
         db   15h, 24h, 25h, 04h, 15h, 15h, 08h, 08h, 04h, 15h, 15h, 17h, 17h, 04h, 15h, 15h
@@ -1807,7 +1807,7 @@ level_data:                             ; 0x18B0-0x334F: levels 0, 2-18 with int
         db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
         db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
         db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
-        ; --- level 7 (0x21C8) ---
+level_7:                                ; 0x21C8 (records below)
         db   01h, 01h, 17h, 00h, 05h, 01h, 16h, 17h, 00h, 3Fh, 01h, 01h, 17h, 3Ch, 3Fh, 05h
         db   16h, 16h, 06h, 13h, 07h, 14h, 14h, 04h, 05h, 06h, 15h, 15h, 06h, 13h, 02h, 15h
         db   15h, 14h, 15h, 05h, 16h, 16h, 2Eh, 3Bh, 02h, 15h, 15h, 2Ch, 2Dh, 06h, 15h, 15h
@@ -1820,7 +1820,7 @@ level_data:                             ; 0x18B0-0x334F: levels 0, 2-18 with int
         db   33h, 00h
         ; (gap 0x225A-0x2266)
         db   15h, 16h, 00h, 14h, 00h, 2Dh, 00h, 00h, 00h, 00h, 02h, 01h, 3Ch
-        ; --- level 8 (0x2267) ---
+level_8:                                ; 0x2267 (records below)
         db   01h, 01h, 17h, 00h, 03h, 01h, 17h, 17h, 00h, 3Fh, 01h, 01h, 17h, 3Bh, 3Fh, 02h
         db   01h, 16h, 3Ah, 3Ah, 01h, 01h, 15h, 38h, 39h, 02h, 14h, 16h, 06h, 07h, 02h, 09h
         db   14h, 04h, 05h, 02h, 05h, 09h, 06h, 07h, 07h, 04h, 04h, 07h, 07h, 01h, 0Fh, 11h
@@ -1855,7 +1855,7 @@ level_data:                             ; 0x18B0-0x334F: levels 0, 2-18 with int
         db   14h, 14h, 32h, 33h, 0Bh, 13h, 13h, 32h, 33h, 0Bh, 10h, 10h, 26h, 27h, 00h
         ; (gap 0x2466-0x2472)
         db   15h, 04h, 07h, 25h, 14h, 1Eh, 00h, 00h, 00h, 00h, 02h, 01h, 3Ah
-        ; --- level 9 (0x2473) ---
+level_9:                                ; 0x2473 (records below)
         db   01h, 01h, 17h, 00h, 3Fh, 18h, 05h, 0Bh, 02h, 05h, 0Bh, 01h, 01h, 02h, 17h, 18h
         db   02h, 04h, 02h, 03h, 0Eh, 03h, 03h, 06h, 0Fh, 07h, 03h, 03h, 06h, 06h, 07h, 03h
         db   03h, 0Fh, 0Fh, 02h, 04h, 0Dh, 08h, 09h, 0Eh, 0Dh, 0Dh, 04h, 07h, 02h, 0Eh, 15h
@@ -1883,7 +1883,7 @@ level_data:                             ; 0x18B0-0x334F: levels 0, 2-18 with int
         ; (gap 0x25EB-0x25FF)
         db   15h, 06h, 00h, 1Ah, 00h, 28h, 00h, 00h, 00h, 00h, 02h, 01h, 39h, 00h, 00h, 00h
         db   00h, 00h, 00h, 00h, 00h
-        ; --- level 10 (0x2600) ---
+level_10:                                ; 0x2600 (records below)
         db   01h, 01h, 17h, 00h, 03h, 01h, 16h, 17h, 00h, 3Fh, 01h, 01h, 15h, 3Ch, 3Fh, 1Ah
         db   16h, 16h, 14h, 27h, 1Ah, 16h, 16h, 2Ch, 33h, 01h, 15h, 15h, 12h, 3Fh, 05h, 15h
         db   15h, 14h, 27h, 05h, 15h, 15h, 2Ch, 33h, 0Bh, 01h, 01h, 06h, 1Dh, 0Bh, 01h, 01h
@@ -1919,7 +1919,7 @@ level_data:                             ; 0x18B0-0x334F: levels 0, 2-18 with int
         ; (gap 0x27F5-0x280F)
         db   01h, 04h, 01h, 1Eh, 00h, 00h, 00h, 00h, 00h, 00h, 01h, 00h, 39h, 00h, 00h, 00h
         db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
-        ; --- level 11 (0x2810) ---
+level_11:                                ; 0x2810 (records below)
         db   01h, 01h, 17h, 00h, 03h, 01h, 17h, 17h, 00h, 3Fh, 0Bh, 16h, 16h, 04h, 0Bh, 01h
         db   01h, 16h, 3Ch, 3Fh, 05h, 16h, 16h, 0Ch, 3Bh, 02h, 14h, 15h, 0Ah, 0Bh, 06h, 14h
         db   14h, 0Ch, 15h, 02h, 14h, 14h, 16h, 17h, 06h, 15h, 15h, 18h, 25h, 02h, 14h, 14h
@@ -1950,7 +1950,7 @@ level_data:                             ; 0x18B0-0x334F: levels 0, 2-18 with int
         ; (gap 0x29BA-0x29CF)
         db   10h, 04h, 01h, 0Bh, 00h, 00h, 00h, 00h, 00h, 00h, 01h, 00h, 09h, 00h, 00h, 00h
         db   00h, 00h, 00h, 00h, 00h, 00h
-        ; --- level 12 (0x29D0) ---
+level_12:                                ; 0x29D0 (records below)
         db   01h, 01h, 17h, 00h, 03h, 01h, 15h, 17h, 04h, 3Fh, 01h, 01h, 14h, 3Ah, 3Fh, 05h
         db   16h, 16h, 04h, 39h, 06h, 15h, 15h, 0Ah, 35h, 06h, 03h, 03h, 05h, 1Dh, 02h, 03h
         db   14h, 04h, 04h, 02h, 01h, 14h, 39h, 39h, 01h, 14h, 14h, 08h, 09h, 01h, 13h, 13h
@@ -1967,7 +1967,7 @@ level_data:                             ; 0x18B0-0x334F: levels 0, 2-18 with int
         ; (gap 0x2A9E-0x2AAF)
         db   14h, 07h, 12h, 1Ch, 12h, 21h, 00h, 00h, 00h, 00h, 02h, 00h, 39h, 00h, 00h, 00h
         db   00h, 00h
-        ; --- level 13 (0x2AB0) ---
+level_13:                                ; 0x2AB0 (records below)
         db   01h, 01h, 17h, 00h, 03h, 01h, 17h, 17h, 04h, 3Fh, 01h, 01h, 16h, 3Ch, 3Fh, 01h
         db   01h, 01h, 04h, 13h, 01h, 01h, 01h, 16h, 2Bh, 01h, 01h, 01h, 2Eh, 3Bh, 0Bh, 13h
         db   16h, 14h, 2Dh, 05h, 13h, 13h, 0Ah, 13h, 05h, 13h, 13h, 1Ah, 27h, 05h, 13h, 13h
@@ -1995,7 +1995,7 @@ level_data:                             ; 0x18B0-0x334F: levels 0, 2-18 with int
         ; (gap 0x2C2D-0x2C3F)
         db   14h, 04h, 01h, 14h, 01h, 2Dh, 00h, 00h, 00h, 00h, 02h, 00h, 3Bh, 00h, 00h, 00h
         db   00h, 00h, 00h
-        ; --- level 14 (0x2C40) ---
+level_14:                                ; 0x2C40 (records below)
         db   01h, 01h, 17h, 00h, 03h, 01h, 16h, 17h, 04h, 3Fh, 01h, 01h, 15h, 3Ch, 3Fh, 05h
         db   16h, 16h, 0Eh, 33h, 02h, 04h, 15h, 06h, 07h, 06h, 04h, 04h, 08h, 21h, 0Bh, 02h
         db   02h, 20h, 21h, 0Bh, 04h, 04h, 1Eh, 1Fh, 0Bh, 04h, 04h, 22h, 23h, 0Bh, 06h, 06h
@@ -2013,7 +2013,7 @@ level_data:                             ; 0x18B0-0x334F: levels 0, 2-18 with int
         ; (gap 0x2D1D-0x2D2F)
         db   14h, 04h, 01h, 1Ch, 01h, 25h, 00h, 00h, 00h, 00h, 02h, 00h, 3Bh, 00h, 00h, 00h
         db   00h, 00h, 00h
-        ; --- level 15 (0x2D30) ---
+level_15:                                ; 0x2D30 (records below)
         db   01h, 01h, 17h, 00h, 03h, 01h, 17h, 17h, 04h, 3Fh, 01h, 01h, 16h, 3Ah, 3Fh, 0Eh
         db   11h, 11h, 3Ah, 3Ch, 05h, 13h, 13h, 04h, 39h, 1Bh, 14h, 16h, 04h, 39h, 02h, 02h
         db   11h, 02h, 03h, 06h, 03h, 03h, 04h, 37h, 02h, 03h, 08h, 38h, 39h, 06h, 07h, 07h
@@ -2034,7 +2034,7 @@ level_data:                             ; 0x18B0-0x334F: levels 0, 2-18 with int
         ; (gap 0x2E3F-0x2E4F)
         db   02h, 02h, 01h, 1Fh, 01h, 22h, 00h, 00h, 00h, 00h, 02h, 00h, 3Dh, 00h, 00h, 00h
         db   00h
-        ; --- level 16 (0x2E50) ---
+level_16:                                ; 0x2E50 (records below)
         db   01h, 01h, 17h, 00h, 03h, 01h, 16h, 17h, 04h, 3Fh, 01h, 01h, 17h, 3Ch, 3Fh, 02h
         db   13h, 15h, 09h, 09h, 02h, 04h, 12h, 0Ah, 0Ah, 06h, 04h, 04h, 0Bh, 1Dh, 0Bh, 02h
         db   02h, 20h, 21h, 0Bh, 04h, 04h, 1Eh, 23h, 0Bh, 06h, 06h, 1Ch, 25h, 06h, 06h, 06h
@@ -2059,7 +2059,7 @@ level_data:                             ; 0x18B0-0x334F: levels 0, 2-18 with int
         ; (gap 0x2F96-0x2FAF)
         db   15h, 04h, 01h, 1Ah, 01h, 27h, 00h, 00h, 00h, 00h, 02h, 00h, 3Bh, 00h, 00h, 00h
         db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
-        ; --- level 17 (0x2FB0) ---
+level_17:                                ; 0x2FB0 (records below)
         db   01h, 01h, 17h, 00h, 03h, 01h, 16h, 17h, 04h, 3Fh, 01h, 01h, 15h, 3Ch, 3Fh, 05h
         db   16h, 16h, 10h, 3Bh, 06h, 15h, 15h, 08h, 3Bh, 02h, 03h, 15h, 04h, 05h, 01h, 04h
         db   14h, 06h, 07h, 01h, 14h, 15h, 0Eh, 0Fh, 06h, 03h, 03h, 06h, 0Bh, 06h, 02h, 02h
@@ -2104,7 +2104,7 @@ level_data:                             ; 0x18B0-0x334F: levels 0, 2-18 with int
         ; (gap 0x323B-0x324F)
         db   15h, 06h, 00h, 11h, 00h, 34h, 00h, 00h, 00h, 00h, 02h, 00h, 0Eh, 00h, 00h, 00h
         db   00h, 00h, 00h, 00h, 00h
-        ; --- level 18 (0x3250) ---
+level_18:                                ; 0x3250 (records below)
         db   01h, 01h, 17h, 00h, 05h, 01h, 16h, 17h, 00h, 3Fh, 01h, 01h, 17h, 3Ch, 3Fh, 05h
         db   16h, 16h, 06h, 09h, 05h, 16h, 16h, 38h, 3Bh, 01h, 0Eh, 14h, 0Ch, 35h, 02h, 0Eh
         db   15h, 0Ah, 0Bh, 02h, 04h, 0Eh, 06h, 07h, 06h, 0Fh, 0Fh, 06h, 09h, 05h, 0Fh, 0Fh
