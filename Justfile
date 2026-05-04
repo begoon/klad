@@ -13,14 +13,14 @@
 
 NAME := "KLAD"
 EXT  := "RK"            # one of: rk, rkr, pki, gam
-ORG  := "0x3000"        # update to match the file header
+ORG  := "0x0000"        # update to match the file header
 
 ext  := lowercase(EXT)
 
 ci: build test
 
 build:
-    bunx asm8080 --split -l --trailer-padding --format {{ ext }} {{ NAME }}.asm
+    bunx asm8080 --split -l --trailer-padding 1 --format {{ ext }} {{ NAME }}.asm
 
 test:
     xxd tape/{{ NAME }}.{{ EXT }} >tape/{{ NAME }}.{{ EXT }}.hex
