@@ -8,6 +8,12 @@ putc            equ  0F809h
 puts            equ  0F818h
 scan_kbd        equ  0F81Bh
 
+; Video memory layout (К580ВГ75 CRTC programmed for 78 bytes/row × 30 rows).
+video_ram       equ  76D0h              ; base of video RAM
+video_row       equ  004Eh              ; bytes per row (decimal 78, NOT 30)
+play_origin     equ  77BDh              ; video[row=3, col=3]; plot_char adds
+                                        ; (B+1)*video_row + C → game cell (B, C)
+
         lxi  sp, 00FFh
         jmp  game_init                  ; → loc_1605
         nop
@@ -1185,8 +1191,8 @@ plot_char:                              ; offset loc_11C4
         push d
         push h
         call xlat_glyph
-        lxi  h, 77BDh
-        lxi  d, 004Eh
+        lxi  h, play_origin             ; HL = video address of game cell (-1, -3)
+        lxi  d, video_row               ; DE = 78 (bytes per video row)
         mov  a, b
         inr  a
         cpi  1Ah
