@@ -8,44 +8,6 @@ putc            equ  0F809h
 puts            equ  0F818h
 scan_kbd        equ  0F81Bh
 
-; Game variables (live in the BSS / state area). Each lives at a fixed
-; address inside the 0x0008-0x0FBF region; the equates let the disasm name
-; them without disturbing the underlying db/ds blocks.
-level_num       equ  0240h              ; 1 byte: current level (0..18)
-level_ptr       equ  0241h              ; word: parser cursor in level data
-maze_map        equ  0243h              ; 24*64 cell map (mirrors screen, 1600 byte slot)
-maze_map_base   equ  0883h              ; word: holds 0x0243 (used by coord_to_screen)
-rec_type        equ  0885h              ; current 5-byte record being rendered
-rec_r1          equ  0886h
-rec_r2          equ  0887h
-rec_c1          equ  0888h
-rec_c2          equ  0889h
-render_dst      equ  088Ah              ; word: screen ptr for current row
-render_height  equ  088Ch
-render_width   equ  088Dh
-player_x_init   equ  08B1h              ; 13 bytes of level metadata copied
-player_y_init   equ  08B2h              ; from level data tail by load_level_state
-actor0_init     equ  08B3h              ; word: actor 0 init xy
-actor1_init     equ  08B5h
-actor2_init     equ  08B7h
-actor3_init     equ  08B9h
-actor_count     equ  08BBh              ; how many of the 4 actors are active
-goal_x          equ  08BCh              ; treasure / chest target col
-goal_y          equ  08BDh
-player_x        equ  0AD4h              ; live player position
-player_y        equ  0AD5h
-anim_tick       equ  0AD6h              ; cycles 0..3 (ani 03h) — animation frame
-anim_flag       equ  0AD7h              ; player anim state flag
-last_key        equ  0AD8h              ; last key from scan_kbd
-score           equ  0AD9h              ; treasures collected this run
-saved_xy_a      equ  0FAAh              ; word scratch (used by collision walker)
-saved_xy_b      equ  0FACh
-player_pos      equ  0FAEh              ; word: player_x,player_y packed as B,C
-actor0          equ  0FB0h              ; live actor 0 (4 bytes: x, y, ?, ?)
-actor1          equ  0FB4h
-actor2          equ  0FB8h
-actor3          equ  0FBCh
-
         lxi  sp, 00FFh
         jmp  game_init                  ; → loc_1605
         nop
@@ -183,115 +145,141 @@ tbl_01D0:                               ; 19 word pointers, indexed by level num
         dw   2FB0h                          ; entry 17
         dw   3250h                          ; entry 18
 
-data_01F6:                              ; 01F6-0882 (zeroed at runtime by clear_bss, but tape ships non-zero values)
+data_01F6:                              ; 01F6-023F filler (zeroed at runtime by clear_state)
         db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
         db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
         db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
         db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
-        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 78h, 19h, 00h, 00h, 00h
-        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
-        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
-        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
-        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 01h, 01h, 01h
-        db   01h, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh
-        db   0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh
-        db   0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 00h, 00h, 0Bh, 0Bh, 0Bh
-        db   0Bh, 0Bh, 02h, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 01h, 01h, 01h, 01h, 01h, 01h, 01h
-        db   01h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
-        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 07h, 00h, 00h
-        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
-        db   00h, 00h, 02h, 00h, 00h, 00h, 00h, 00h, 00h, 01h, 01h, 01h, 01h, 01h, 01h, 01h
-        db   01h, 00h, 00h, 00h, 00h, 00h, 00h, 02h, 02h, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh
-        db   0Bh, 06h, 06h, 06h, 06h, 06h, 06h, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh
-        db   0Bh, 0Bh, 0Bh, 06h, 06h, 06h, 06h, 06h, 06h, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh
-        db   0Bh, 0Bh, 0Bh, 00h, 00h, 00h, 00h, 00h, 00h, 01h, 01h, 01h, 01h, 01h, 01h, 01h
-        db   01h, 00h, 00h, 00h, 00h, 00h, 00h, 02h, 02h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
-        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
-        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
-        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 01h, 01h, 01h, 01h, 01h, 01h, 01h
-        db   01h, 00h, 00h, 00h, 00h, 00h, 00h, 02h, 02h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
-        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
-        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
-        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 01h, 01h, 01h, 01h, 01h, 01h, 01h
-        db   01h, 0Bh, 0Bh, 02h, 02h, 0Bh, 0Bh, 0Bh, 0Bh, 00h, 00h, 00h, 00h, 00h, 00h, 0Bh
-        db   0Bh, 02h, 02h, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 06h, 06h, 06h, 06h, 06h
-        db   06h, 06h, 06h, 06h, 06h, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 02h
-        db   02h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 01h, 01h, 01h, 01h, 01h, 01h, 01h
-        db   01h, 00h, 00h, 02h, 02h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
-        db   00h, 02h, 02h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
-        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 02h
-        db   02h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 01h, 01h, 01h, 01h, 01h, 01h, 01h
-        db   01h, 00h, 00h, 02h, 02h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
-        db   00h, 02h, 02h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
-        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 02h
-        db   02h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 01h, 01h, 01h, 01h, 01h, 01h, 01h
-        db   01h, 00h, 00h, 02h, 02h, 00h, 00h, 07h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
-        db   00h, 02h, 02h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 07h, 00h, 00h, 00h, 00h
-        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 07h, 00h, 02h
-        db   02h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 01h, 01h, 01h, 01h, 01h, 01h, 01h
-        db   01h, 00h, 00h, 02h, 02h, 00h, 00h, 0Bh, 0Bh, 02h, 02h, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh
-        db   0Bh, 0Bh, 0Bh, 00h, 00h, 00h, 00h, 00h, 00h, 02h, 02h, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh
-        db   0Bh, 0Bh, 0Bh, 02h, 02h, 0Bh, 0Bh, 00h, 00h, 00h, 00h, 00h, 00h, 0Bh, 0Bh, 0Bh
-        db   0Bh, 0Bh, 0Bh, 02h, 02h, 00h, 00h, 00h, 00h, 01h, 01h, 01h, 01h, 01h, 01h, 01h
-        db   01h, 00h, 00h, 02h, 02h, 00h, 00h, 00h, 00h, 02h, 02h, 00h, 00h, 00h, 00h, 00h
-        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 02h, 02h, 00h, 00h, 00h, 00h, 00h
-        db   00h, 00h, 00h, 02h, 02h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
-        db   00h, 00h, 00h, 02h, 02h, 00h, 00h, 00h, 00h, 01h, 01h, 01h, 01h, 01h, 01h, 01h
-        db   01h, 00h, 00h, 02h, 02h, 00h, 00h, 00h, 00h, 02h, 02h, 00h, 00h, 00h, 00h, 00h
-        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 02h, 02h, 00h, 00h, 00h, 00h, 00h
-        db   00h, 00h, 00h, 02h, 02h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
-        db   00h, 00h, 00h, 02h, 02h, 00h, 00h, 00h, 00h, 01h, 01h, 01h, 01h, 01h, 01h, 01h
-        db   01h, 00h, 00h, 02h, 02h, 00h, 00h, 00h, 00h, 02h, 02h, 00h, 00h, 00h, 00h, 00h
-        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 02h, 02h, 00h, 00h, 00h, 00h, 00h
-        db   00h, 00h, 00h, 02h, 02h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
-        db   00h, 00h, 00h, 02h, 02h, 00h, 00h, 00h, 00h, 01h, 01h, 01h, 01h, 01h, 01h, 01h
-        db   01h, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 00h, 00h, 00h, 00h, 00h
-        db   00h, 02h, 02h, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 00h, 00h, 00h, 00h, 00h
-        db   00h, 00h, 00h, 02h, 02h, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 02h, 02h, 00h
-        db   00h, 00h, 00h, 02h, 02h, 00h, 00h, 00h, 00h, 01h, 01h, 01h, 01h, 01h, 01h, 01h
-        db   01h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
-        db   00h, 02h, 02h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
-        db   00h, 00h, 00h, 02h, 02h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 02h, 02h, 00h
-        db   00h, 00h, 00h, 02h, 02h, 00h, 00h, 00h, 00h, 01h, 01h, 01h, 01h, 01h, 01h, 01h
-        db   01h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
-        db   00h, 02h, 02h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
-        db   00h, 00h, 00h, 02h, 02h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 02h, 02h, 00h
-        db   00h, 00h, 00h, 02h, 02h, 00h, 00h, 00h, 00h, 01h, 01h, 01h, 01h, 01h, 01h, 01h
-        db   01h, 00h, 00h, 00h, 00h, 00h, 00h, 07h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
-        db   00h, 02h, 02h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 07h, 00h, 00h, 00h, 00h
-        db   00h, 00h, 00h, 02h, 02h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 02h, 02h, 00h
-        db   00h, 00h, 00h, 02h, 02h, 00h, 00h, 00h, 00h, 01h, 01h, 01h, 01h, 01h, 01h, 01h
-        db   01h, 00h, 00h, 00h, 00h, 00h, 00h, 0Bh, 0Bh, 0Bh, 0Bh, 02h, 02h, 0Bh, 0Bh, 0Bh
-        db   0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 00h, 00h, 00h, 00h, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh
-        db   0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 00h, 00h, 00h, 00h, 00h, 00h, 0Bh, 0Bh, 0Bh
-        db   0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 00h, 00h, 00h, 00h, 01h, 01h, 01h, 01h, 01h, 01h, 01h
-        db   01h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 02h, 02h, 00h, 00h, 00h
-        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
-        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
-        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 01h, 01h, 01h, 01h, 01h, 01h, 01h
-        db   01h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 02h, 02h, 00h, 00h, 00h
-        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
-        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
-        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 01h, 01h, 01h, 01h, 01h, 01h, 01h
-        db   01h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 02h, 02h, 00h, 00h, 00h
-        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
-        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
-        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 01h, 01h, 01h, 01h, 01h, 01h, 01h
-        db   01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 05h
-        db   05h, 05h, 05h, 05h, 05h, 05h, 05h, 05h, 05h, 05h, 05h, 05h, 05h, 05h, 05h, 05h
-        db   05h, 05h, 05h, 05h, 05h, 05h, 05h, 05h, 05h, 05h, 05h, 05h, 05h, 05h, 05h, 05h
-        db   05h, 05h, 05h, 05h, 05h, 05h, 05h, 05h, 05h, 01h, 01h, 01h, 01h, 01h, 01h, 01h
-        db   01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h
-        db   01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h
-        db   01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h
-        db   01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 00h, 00h, 00h
-        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
-        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
-        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
-        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
+        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
 
-vars_0883:                              ; 0883-088D init values (not cleared)
-        db   43h, 02h, 02h, 05h, 05h, 0Ah, 0Bh, 8Dh, 03h, 00h, 0FFh
+level_num:                              ; 1-byte: current level (0..18)
+        db   00h
+
+level_ptr:                              ; word: parser cursor in level data
+        dw   1978h
+
+maze_map:                               ; 24x64 cell shadow buffer (1600 bytes); zeroed by clear_state
+        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
+        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
+        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
+        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
+        db   01h, 01h, 01h, 01h, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh
+        db   0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh
+        db   0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 00h, 00h
+        db   0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 02h, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 01h, 01h, 01h, 01h
+        db   01h, 01h, 01h, 01h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
+        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
+        db   07h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
+        db   00h, 00h, 00h, 00h, 00h, 02h, 00h, 00h, 00h, 00h, 00h, 00h, 01h, 01h, 01h, 01h
+        db   01h, 01h, 01h, 01h, 00h, 00h, 00h, 00h, 00h, 00h, 02h, 02h, 0Bh, 0Bh, 0Bh, 0Bh
+        db   0Bh, 0Bh, 0Bh, 0Bh, 06h, 06h, 06h, 06h, 06h, 06h, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh
+        db   0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 06h, 06h, 06h, 06h, 06h, 06h, 0Bh, 0Bh, 0Bh, 0Bh
+        db   0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 00h, 00h, 00h, 00h, 00h, 00h, 01h, 01h, 01h, 01h
+        db   01h, 01h, 01h, 01h, 00h, 00h, 00h, 00h, 00h, 00h, 02h, 02h, 00h, 00h, 00h, 00h
+        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
+        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
+        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 01h, 01h, 01h, 01h
+        db   01h, 01h, 01h, 01h, 00h, 00h, 00h, 00h, 00h, 00h, 02h, 02h, 00h, 00h, 00h, 00h
+        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
+        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
+        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 01h, 01h, 01h, 01h
+        db   01h, 01h, 01h, 01h, 0Bh, 0Bh, 02h, 02h, 0Bh, 0Bh, 0Bh, 0Bh, 00h, 00h, 00h, 00h
+        db   00h, 00h, 0Bh, 0Bh, 02h, 02h, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 06h, 06h
+        db   06h, 06h, 06h, 06h, 06h, 06h, 06h, 06h, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh
+        db   0Bh, 0Bh, 02h, 02h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 01h, 01h, 01h, 01h
+        db   01h, 01h, 01h, 01h, 00h, 00h, 02h, 02h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
+        db   00h, 00h, 00h, 00h, 02h, 02h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
+        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
+        db   00h, 00h, 02h, 02h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 01h, 01h, 01h, 01h
+        db   01h, 01h, 01h, 01h, 00h, 00h, 02h, 02h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
+        db   00h, 00h, 00h, 00h, 02h, 02h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
+        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
+        db   00h, 00h, 02h, 02h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 01h, 01h, 01h, 01h
+        db   01h, 01h, 01h, 01h, 00h, 00h, 02h, 02h, 00h, 00h, 07h, 00h, 00h, 00h, 00h, 00h
+        db   00h, 00h, 00h, 00h, 02h, 02h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 07h, 00h
+        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
+        db   07h, 00h, 02h, 02h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 01h, 01h, 01h, 01h
+        db   01h, 01h, 01h, 01h, 00h, 00h, 02h, 02h, 00h, 00h, 0Bh, 0Bh, 02h, 02h, 0Bh, 0Bh
+        db   0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 00h, 00h, 00h, 00h, 00h, 00h, 02h, 02h, 0Bh, 0Bh
+        db   0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 02h, 02h, 0Bh, 0Bh, 00h, 00h, 00h, 00h, 00h, 00h
+        db   0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 02h, 02h, 00h, 00h, 00h, 00h, 01h, 01h, 01h, 01h
+        db   01h, 01h, 01h, 01h, 00h, 00h, 02h, 02h, 00h, 00h, 00h, 00h, 02h, 02h, 00h, 00h
+        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 02h, 02h, 00h, 00h
+        db   00h, 00h, 00h, 00h, 00h, 00h, 02h, 02h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
+        db   00h, 00h, 00h, 00h, 00h, 00h, 02h, 02h, 00h, 00h, 00h, 00h, 01h, 01h, 01h, 01h
+        db   01h, 01h, 01h, 01h, 00h, 00h, 02h, 02h, 00h, 00h, 00h, 00h, 02h, 02h, 00h, 00h
+        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 02h, 02h, 00h, 00h
+        db   00h, 00h, 00h, 00h, 00h, 00h, 02h, 02h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
+        db   00h, 00h, 00h, 00h, 00h, 00h, 02h, 02h, 00h, 00h, 00h, 00h, 01h, 01h, 01h, 01h
+        db   01h, 01h, 01h, 01h, 00h, 00h, 02h, 02h, 00h, 00h, 00h, 00h, 02h, 02h, 00h, 00h
+        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 02h, 02h, 00h, 00h
+        db   00h, 00h, 00h, 00h, 00h, 00h, 02h, 02h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
+        db   00h, 00h, 00h, 00h, 00h, 00h, 02h, 02h, 00h, 00h, 00h, 00h, 01h, 01h, 01h, 01h
+        db   01h, 01h, 01h, 01h, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 00h, 00h
+        db   00h, 00h, 00h, 00h, 02h, 02h, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 00h, 00h
+        db   00h, 00h, 00h, 00h, 00h, 00h, 02h, 02h, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh
+        db   02h, 02h, 00h, 00h, 00h, 00h, 02h, 02h, 00h, 00h, 00h, 00h, 01h, 01h, 01h, 01h
+        db   01h, 01h, 01h, 01h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
+        db   00h, 00h, 00h, 00h, 02h, 02h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
+        db   00h, 00h, 00h, 00h, 00h, 00h, 02h, 02h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
+        db   02h, 02h, 00h, 00h, 00h, 00h, 02h, 02h, 00h, 00h, 00h, 00h, 01h, 01h, 01h, 01h
+        db   01h, 01h, 01h, 01h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
+        db   00h, 00h, 00h, 00h, 02h, 02h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
+        db   00h, 00h, 00h, 00h, 00h, 00h, 02h, 02h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
+        db   02h, 02h, 00h, 00h, 00h, 00h, 02h, 02h, 00h, 00h, 00h, 00h, 01h, 01h, 01h, 01h
+        db   01h, 01h, 01h, 01h, 00h, 00h, 00h, 00h, 00h, 00h, 07h, 00h, 00h, 00h, 00h, 00h
+        db   00h, 00h, 00h, 00h, 02h, 02h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 07h, 00h
+        db   00h, 00h, 00h, 00h, 00h, 00h, 02h, 02h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
+        db   02h, 02h, 00h, 00h, 00h, 00h, 02h, 02h, 00h, 00h, 00h, 00h, 01h, 01h, 01h, 01h
+        db   01h, 01h, 01h, 01h, 00h, 00h, 00h, 00h, 00h, 00h, 0Bh, 0Bh, 0Bh, 0Bh, 02h, 02h
+        db   0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 00h, 00h, 00h, 00h, 0Bh, 0Bh
+        db   0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 00h, 00h, 00h, 00h, 00h, 00h
+        db   0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 0Bh, 00h, 00h, 00h, 00h, 01h, 01h, 01h, 01h
+        db   01h, 01h, 01h, 01h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 02h, 02h
+        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
+        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
+        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 01h, 01h, 01h, 01h
+        db   01h, 01h, 01h, 01h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 02h, 02h
+        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
+        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
+        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 01h, 01h, 01h, 01h
+        db   01h, 01h, 01h, 01h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 02h, 02h
+        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
+        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
+        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 01h, 01h, 01h, 01h
+        db   01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h
+        db   01h, 01h, 05h, 05h, 05h, 05h, 05h, 05h, 05h, 05h, 05h, 05h, 05h, 05h, 05h, 05h
+        db   05h, 05h, 05h, 05h, 05h, 05h, 05h, 05h, 05h, 05h, 05h, 05h, 05h, 05h, 05h, 05h
+        db   05h, 05h, 05h, 05h, 05h, 05h, 05h, 05h, 05h, 05h, 05h, 05h, 01h, 01h, 01h, 01h
+        db   01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h
+        db   01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h
+        db   01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h
+        db   01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h
+        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
+        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
+        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
+        db   00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 00h
+
+maze_map_base:                          ; word: holds 0x0243 (used by coord_to_screen)
+        dw   0243h
+
+rec_type:                               ; current 5-byte record being rendered
+        db   02h    ; type (xlat-glyph index)
+rec_r1:
+        db   05h    ; row_start (mutates as renderer iterates)
+rec_r2:
+        db   05h    ; row_end
+rec_c1:
+        db   0Ah    ; col_start
+rec_c2:
+        db   0Bh    ; col_end
+
+render_dst:                             ; word: screen ptr for current row
+        dw   038Dh
+render_height:
+        db   00h
+render_width:
+        db   0FFh
 
 clear_state:                            ; offset loc_088E
         lxi  h, maze_map                ; HL = 0243h
@@ -320,7 +308,26 @@ loc_08A8:
         jnz  loc_08A8
         ret
 
-        db   0Fh, 04h, 01h, 2Eh, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 01h, 35h    ; 08B1-08BD filler
+player_x_init:                          ; level metadata copied here by load_level_state
+        db   0Fh
+player_y_init:
+        db   04h
+
+actor0_init:                            ; 4 actor init xy words
+        dw   2E01h
+actor1_init:
+        dw   0000h
+actor2_init:
+        dw   0000h
+actor3_init:
+        dw   0000h
+
+actor_count:                            ; how many of the 4 actors are active
+        db   00h
+goal_x:                                 ; treasure / chest target col
+        db   01h
+goal_y:
+        db   35h
 
 coord_to_screen:                               ; called from many places: maps (B,C) → screen address
         push psw
@@ -604,11 +611,18 @@ loc_0AC1:
 loc_0AD3:
         ret
 
-var_0AD4:                               ; 0AD4-0AD9 game state vars
-        db   15h, 08h                   ; 0AD4 player x, 0AD5 player y (init 15h,08h)
-        db   01h, 00h                   ; 0AD6, 0AD7
-        db   3Ah                        ; 0AD8 last key
-        db   00h                        ; 0AD9 counter (reset by game_restart)
+player_x:                               ; live player position
+        db   15h    ; init 15h
+player_y:
+        db   08h    ; init 08h
+anim_tick:                              ; cycles 0..3 (animation frame)
+        db   01h
+anim_flag:
+        db   00h
+last_key:                               ; last key from scan_kbd
+        db   3Ah
+score:                                  ; treasures collected this run
+        db   00h
 
 game_restart:                           ; offset loc_0ADA
         xra  a
@@ -878,14 +892,20 @@ loc_0F9A:
 loc_0FA7:
         jmp  loc_0EE2
 
-actor_vars:                             ; 0FAA-0FBF actor/state vars used by routines below
-        db   05h, 08h                   ; 0FAA-0FAB word var (player target?)
-        db   00h, 02h                   ; 0FAC-0FAD bytes
-        db   05h, 08h                   ; 0FAE-0FAF word var (player position)
-        ; 0FB0-0FBF: 4 actor records, 4 bytes each (x, y, ?, ?)
+saved_xy_a:                             ; word scratch (collision walker target)
+        dw   0805h
+saved_xy_b:
+        dw   0200h
+player_pos:                             ; word: player x,y packed as B,C
+        dw   0805h
+
+actor0:                                 ; 4 actor records, 4 bytes each (x, y, ?, ?)
         db   05h, 08h, 00h, 02h
+actor1:
         db   00h, 00h, 00h, 01h
+actor2:
         db   00h, 00h, 00h, 02h
+actor3:
         db   00h, 00h, 00h, 00h
 
 loc_0FC0:
