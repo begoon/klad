@@ -8,6 +8,44 @@ putc            equ  0F809h
 puts            equ  0F818h
 scan_kbd        equ  0F81Bh
 
+; Game variables (live in the BSS / state area). Each lives at a fixed
+; address inside the 0x0008-0x0FBF region; the equates let the disasm name
+; them without disturbing the underlying db/ds blocks.
+level_num       equ  0240h              ; 1 byte: current level (0..18)
+level_ptr       equ  0241h              ; word: parser cursor in level data
+maze_map        equ  0243h              ; 24*64 cell map (mirrors screen, 1600 byte slot)
+maze_map_base   equ  0883h              ; word: holds 0x0243 (used by coord_to_screen)
+rec_type        equ  0885h              ; current 5-byte record being rendered
+rec_r1          equ  0886h
+rec_r2          equ  0887h
+rec_c1          equ  0888h
+rec_c2          equ  0889h
+render_dst      equ  088Ah              ; word: screen ptr for current row
+render_height  equ  088Ch
+render_width   equ  088Dh
+player_x_init   equ  08B1h              ; 13 bytes of level metadata copied
+player_y_init   equ  08B2h              ; from level data tail by load_level_state
+actor0_init     equ  08B3h              ; word: actor 0 init xy
+actor1_init     equ  08B5h
+actor2_init     equ  08B7h
+actor3_init     equ  08B9h
+actor_count     equ  08BBh              ; how many of the 4 actors are active
+goal_x          equ  08BCh              ; treasure / chest target col
+goal_y          equ  08BDh
+player_x        equ  0AD4h              ; live player position
+player_y        equ  0AD5h
+anim_tick       equ  0AD6h              ; cycles 0..3 (ani 03h) — animation frame
+anim_flag       equ  0AD7h              ; player anim state flag
+last_key        equ  0AD8h              ; last key from scan_kbd
+score           equ  0AD9h              ; treasures collected this run
+saved_xy_a      equ  0FAAh              ; word scratch (used by collision walker)
+saved_xy_b      equ  0FACh
+player_pos      equ  0FAEh              ; word: player_x,player_y packed as B,C
+actor0          equ  0FB0h              ; live actor 0 (4 bytes: x, y, ?, ?)
+actor1          equ  0FB4h
+actor2          equ  0FB8h
+actor3          equ  0FBCh
+
         lxi  sp, 00FFh
         jmp  game_init                  ; → loc_1605
         nop
@@ -22,81 +60,81 @@ tbl_00E7:                               ; offset loc_00E7 (24 bytes referenced f
 loc_0100:
         mvi  c, 1Fh
         call putc
-        lxi  h, 01D0h
+        lxi  h, tbl_01D0
         xra  a
-        lda  0240h
+        lda  level_num
         ral
         mov  e, a
         mvi  d, 00h
         dad  d
         mov  a, m
-        sta  0241h
+        sta  level_ptr
         inx  h
         mov  a, m
-        sta  0242h
-        lxi  h, 0243h
-        shld 0883h
+        sta  level_ptr+1
+        lxi  h, maze_map
+        shld maze_map_base
 loc_0120:
-        lhld 0241h
+        lhld level_ptr
         mov  a, m
         ora  a
         rz
         call xlat_glyph
-        sta  0885h
+        sta  rec_type
         inx  h
         mov  a, m
-        sta  0886h
+        sta  rec_r1
         inx  h
         mov  a, m
-        sta  0887h
+        sta  rec_r2
         inx  h
         mov  a, m
-        sta  0888h
+        sta  rec_c1
         inx  h
         mov  a, m
-        sta  0889h
+        sta  rec_c2
         inx  h
-        shld 0241h
+        shld level_ptr
 loc_0144:
-        lda  0886h
+        lda  rec_r1
         mov  b, a
-        lda  0888h
+        lda  rec_c1
         mov  c, a
         call coord_to_screen
-        shld 088Ah
-        lda  0886h
+        shld render_dst
+        lda  rec_r1
         mov  d, a
-        lda  0887h
+        lda  rec_r2
         sub  d
-        sta  088Ch
-        lda  0888h
+        sta  render_height
+        lda  rec_c1
         mov  d, a
-        lda  0889h
+        lda  rec_c2
         sub  d
-        sta  088Dh
-        lhld 088Ah
+        sta  render_width
+        lhld render_dst
         xchg
-        lda  0888h
+        lda  rec_c1
         mov  c, a
-        lda  0886h
+        lda  rec_r1
         mov  b, a
 loc_0174:
-        lda  0885h
+        lda  rec_type
         stax d
         call plot_char
         inx  d
         inr  c
-        lda  088Dh
+        lda  render_width
         dcr  a
-        sta  088Dh
+        sta  render_width
         cpi  0FFh
         jnz  loc_0174
-        lda  088Ch
+        lda  render_height
         ora  a
         jz   loc_0120
-        lda  0886h
+        lda  rec_r1
         inr  a
-        sta  0886h
+        sta  rec_r1
         jmp  loc_0144
 
         db   1Bh, 59h, 00h, 00h          ; 019A-019D inline scratch
@@ -109,7 +147,7 @@ xlat_glyph:                             ; offset loc_01A0
         push d
         mov  e, a
         mvi  d, 00h
-        lxi  h, 01B2h
+        lxi  h, tbl_01B2
         dad  d
         mov  a, m
         sta  var_019E
@@ -256,8 +294,8 @@ vars_0883:                              ; 0883-088D init values (not cleared)
         db   43h, 02h, 02h, 05h, 05h, 0Ah, 0Bh, 8Dh, 03h, 00h, 0FFh
 
 clear_state:                            ; offset loc_088E
-        lxi  h, 0243h
-        lxi  d, 0882h
+        lxi  h, maze_map                ; HL = 0243h
+        lxi  d, 0882h                   ; DE = end address (loop while HL <= DE)
 clear_state_loop:                       ; offset loc_0894
         xra  a
         mov  m, a
@@ -269,9 +307,9 @@ clear_state_loop:                       ; offset loc_0894
         jnc  clear_state_loop
         ret
 load_level_state:                       ; offset loc_089F
-        lhld 0241h
+        lhld level_ptr
         inx  h
-        lxi  d, 08B1h
+        lxi  d, player_x_init
         mvi  b, 0Dh
 loc_08A8:
         mov  a, m
@@ -314,15 +352,15 @@ loc_08D0:
         mov  e, a
         mov  a, d
         aci  00h
-        lhld 0883h
+        lhld maze_map_base
         dad  d
         pop  d
         pop  psw
         ret
 loc_08EB:
-        lda  0AD4h
+        lda  player_x
         mov  b, a
-        lda  0AD5h
+        lda  player_y
         mov  c, a
         call coord_to_screen
         mov  a, m
@@ -347,18 +385,18 @@ loc_0919:
         mov  a, m
         call plot_char
         inr  b
-        lda  0AD6h
+        lda  anim_tick
         inr  a
         ani  03h
         jnz  loc_092C
         dcr  b
 loc_092C:
-        sta  0AD6h
+        sta  anim_tick
         mov  a, b
-        sta  0AD4h
+        sta  player_x
         mvi  a, 13h
         call plot_char
-        sta  0AD7h
+        sta  anim_flag
         call coord_to_screen
         mov  a, m
         cpi  07h
@@ -368,12 +406,12 @@ loc_0946:
         cpi  08h
         rnz
         mvi  m, 12h
-        lda  0AD9h
+        lda  score
         inr  a
-        sta  0AD9h
+        sta  score
         ret
 loc_0953:
-        lda  0AD7h
+        lda  anim_flag
         ora  a
         jz   loc_0960
         mov  a, m
@@ -383,8 +421,8 @@ loc_0960:
         dcr  b
 loc_0961:
         xra  a
-        sta  0AD7h
-        lda  0AD8h
+        sta  anim_flag
+        lda  last_key
         cpi  08h
         jz   loc_097F
         cpi  18h
@@ -423,11 +461,11 @@ loc_09AB:
 loc_09B6:
         cpi  09h
         jnz  loc_09CB
-        lda  0AD9h
+        lda  score
         ora  a
         jz   loc_0AD3
         dcr  a
-        sta  0AD9h
+        sta  score
         mvi  m, 11h
         jmp  loc_09D0
 loc_09CB:
@@ -442,7 +480,7 @@ loc_09D0:
         mvi  a, 13h
         call plot_char
         mov  a, c
-        sta  0AD5h
+        sta  player_y
         ret
 loc_09E3:
         inr  c
@@ -473,11 +511,11 @@ loc_0A0F:
 loc_0A1A:
         cpi  0Ah
         jnz  loc_0A2F
-        lda  0AD9h
+        lda  score
         ora  a
         jz   loc_0AD3
         dcr  a
-        sta  0AD9h
+        sta  score
         mvi  m, 11h
         jmp  loc_0A34
 loc_0A2F:
@@ -492,7 +530,7 @@ loc_0A34:
         mvi  a, 13h
         call plot_char
         mov  a, c
-        sta  0AD5h
+        sta  player_y
         jmp  loc_0AD3
 loc_0A49:
         call coord_to_screen
@@ -529,7 +567,7 @@ loc_0A7F:
         mvi  a, 13h
         call plot_char
         mov  a, b
-        sta  0AD4h
+        sta  player_x
         jmp  loc_0AD3
 loc_0A94:
         inr  b
@@ -562,7 +600,7 @@ loc_0AC1:
         mvi  a, 13h
         call plot_char
         mov  a, b
-        sta  0AD4h
+        sta  player_x
 loc_0AD3:
         ret
 
@@ -574,19 +612,19 @@ var_0AD4:                               ; 0AD4-0AD9 game state vars
 
 game_restart:                           ; offset loc_0ADA
         xra  a
-        sta  0AD9h
+        sta  score
         call clear_state
         call loc_0100
         call load_level_state
-        lda  08B1h
-        sta  0AD4h
-        lda  08B2h
-        sta  0AD5h
+        lda  player_x_init
+        sta  player_x
+        lda  player_y_init
+        sta  player_y
         call loc_1586
         call loc_1168
 main_loop:                              ; offset loc_0AF9
         call scan_kbd
-        sta  0AD8h
+        sta  last_key
         call loc_08EB
         call loc_1039
         call loc_1181
@@ -597,9 +635,9 @@ main_loop:                              ; offset loc_0AF9
         lda  var_11C3
         ora  a
         jnz  game_restart
-        lda  0AD4h
+        lda  player_x
         mov  b, a
-        lda  0AD5h
+        lda  player_y
         mov  c, a
         call coord_to_screen
         mov  a, m
@@ -664,9 +702,9 @@ level_1:                                ; level 1 data, 5-byte records, 0x0B35-0
         db   01h, 02h, 01h, 30h, 01h, 2Fh, 02h, 1Ah, 00h, 00h, 03h, 01h, 3Ch    ; 0E3D-0E49 unused tail / filler
 
 loc_0E4A:
-        lda  0FAAh
+        lda  saved_xy_a
         mov  b, a
-        lda  0FABh
+        lda  saved_xy_a+1
         mov  c, a
         call coord_to_screen
         mov  a, m
@@ -686,7 +724,7 @@ loc_0E4A:
         cpi  0Eh
         jnc  loc_0E8C
         dcr  b
-        lda  0FACh
+        lda  saved_xy_b
         ora  a
         jz   loc_0E9A
         inr  b
@@ -698,18 +736,18 @@ loc_0E4A:
         inr  b
 loc_0E8C:
         mov  a, b
-        sta  0FAEh
+        sta  player_pos
         mov  a, c
-        sta  0FAFh
+        sta  player_pos+1
         mvi  a, 01h
-        sta  0FACh
+        sta  saved_xy_b
         ret
 loc_0E9A:
         xra  a
-        sta  0FACh
-        lda  0AD4h
+        sta  saved_xy_b
+        lda  player_x
         mov  d, a
-        lda  0AD5h
+        lda  player_y
         mov  e, a
         cmp  c
         jnc  loc_0EEB
@@ -733,17 +771,17 @@ loc_0E9A:
         inr  c
         jmp  loc_0EEB
 loc_0ED5:
-        lda  0FADh
+        lda  saved_xy_b+1
         inr  a
         ani  03h
-        sta  0FADh
+        sta  saved_xy_b+1
         jnz  loc_0EE2
         inr  c
 loc_0EE2:
         mov  a, b
-        sta  0FAEh
+        sta  player_pos
         mov  a, c
-        sta  0FAFh
+        sta  player_pos+1
         ret
 loc_0EEB:
         mov  a, c
@@ -769,10 +807,10 @@ loc_0EEB:
         dcr  c
         jmp  loc_0F2B
 loc_0F1B:
-        lda  0FADh
+        lda  saved_xy_b+1
         inr  a
         ani  03h
-        sta  0FADh
+        sta  saved_xy_b+1
         jnz  loc_0EE2
         dcr  c
         jmp  loc_0EE2
@@ -802,10 +840,10 @@ loc_0F2B:
         inr  b
         jmp  loc_0F6F
 loc_0F5F:
-        lda  0FADh
+        lda  saved_xy_b+1
         inr  a
         ani  03h
-        sta  0FADh
+        sta  saved_xy_b+1
         jnz  loc_0EE2
         inr  b
         jmp  loc_0EE2
@@ -831,10 +869,10 @@ loc_0F6F:
         dcr  b
         jmp  loc_0FA7
 loc_0F9A:
-        lda  0FADh
+        lda  saved_xy_b+1
         inr  a
         ani  03h
-        sta  0FADh
+        sta  saved_xy_b+1
         jnz  loc_0EE2
         dcr  b
 loc_0FA7:
@@ -851,11 +889,11 @@ actor_vars:                             ; 0FAA-0FBF actor/state vars used by rou
         db   00h, 00h, 00h, 00h
 
 loc_0FC0:
-        lda  0FAEh
+        lda  player_pos
         mov  b, a
-        lda  0FAFh
+        lda  player_pos+1
         mov  c, a
-        lxi  h, 0FB0h
+        lxi  h, actor0
         mov  a, m
         sub  b
         mov  d, a
@@ -899,28 +937,28 @@ loc_0FC0:
         jz   loc_0FFD
         ret
 loc_0FFD:
-        lhld 0FAAh
-        shld 0FAEh
+        lhld saved_xy_a
+        shld player_pos
         ret
 loc_1004:
-        lda  0FAAh
+        lda  saved_xy_a
         mov  b, a
-        lda  0FABh
+        lda  saved_xy_a+1
         mov  c, a
         call coord_to_screen
         mov  a, m
         call plot_char
-        lda  0FAEh
+        lda  player_pos
         mov  b, a
-        lda  0FAFh
+        lda  player_pos+1
         mov  c, a
         mvi  a, 14h
         call plot_char
         ret
 loc_1021:
-        lda  0FAEh
+        lda  player_pos
         mov  b, a
-        lda  0FAFh
+        lda  player_pos+1
         mov  c, a
         call coord_to_screen
         mov  a, m
@@ -933,11 +971,11 @@ loc_1037:
         stc
         ret
 loc_1039:
-        lhld 0FB0h
-        shld 0FAAh
-        shld 0FAEh
-        lhld 0FB2h
-        shld 0FACh
+        lhld actor0
+        shld saved_xy_a
+        shld player_pos
+        lhld actor0+2
+        shld saved_xy_b
         lda  1164h
         ora  a
         jz   loc_1056
@@ -952,23 +990,23 @@ loc_1056:
         jc   loc_1073
         mvi  a, 0D0h
         sta  1164h
-        lhld 08B3h
-        shld 0FB0h
+        lhld actor0_init
+        shld actor0
         jmp  loc_107F
 loc_1073:
-        lhld 0FAEh
-        shld 0FB0h
-        lhld 0FACh
-        shld 0FB2h
+        lhld player_pos
+        shld actor0
+        lhld saved_xy_b
+        shld actor0+2
 loc_107F:
-        lda  08BBh
+        lda  actor_count
         cpi  02h
         rc
-        lhld 0FB4h
-        shld 0FAAh
-        shld 0FAEh
-        lhld 0FB6h
-        shld 0FACh
+        lhld actor1
+        shld saved_xy_a
+        shld player_pos
+        lhld actor1+2
+        shld saved_xy_b
         lda  1165h
         ora  a
         jz   loc_10A2
@@ -983,23 +1021,23 @@ loc_10A2:
         jc   loc_10BF
         mvi  a, 0D0h
         sta  1165h
-        lhld 08B5h
-        shld 0FB4h
+        lhld actor1_init
+        shld actor1
         jmp  loc_10CB
 loc_10BF:
-        lhld 0FAEh
-        shld 0FB4h
-        lhld 0FACh
-        shld 0FB6h
+        lhld player_pos
+        shld actor1
+        lhld saved_xy_b
+        shld actor1+2
 loc_10CB:
-        lda  08BBh
+        lda  actor_count
         cpi  03h
         rc
-        lhld 0FB8h
-        shld 0FAAh
-        shld 0FAEh
-        lhld 0FBAh
-        shld 0FACh
+        lhld actor2
+        shld saved_xy_a
+        shld player_pos
+        lhld actor2+2
+        shld saved_xy_b
         lda  1166h
         ora  a
         jz   loc_10EE
@@ -1014,23 +1052,23 @@ loc_10EE:
         jc   loc_110B
         mvi  a, 0D0h
         sta  1166h
-        lhld 08B7h
-        shld 0FB8h
+        lhld actor2_init
+        shld actor2
         jmp  loc_1117
 loc_110B:
-        lhld 0FAEh
-        shld 0FB8h
-        lhld 0FACh
-        shld 0FBAh
+        lhld player_pos
+        shld actor2
+        lhld saved_xy_b
+        shld actor2+2
 loc_1117:
-        lda  08BBh
+        lda  actor_count
         cpi  04h
         rc
-        lhld 0FBCh
-        shld 0FAAh
-        shld 0FAEh
-        lhld 0FBEh
-        shld 0FACh
+        lhld actor3
+        shld saved_xy_a
+        shld player_pos
+        lhld actor3+2
+        shld saved_xy_b
         lda  1167h
         ora  a
         jz   loc_113A
@@ -1045,33 +1083,33 @@ loc_113A:
         jc   loc_1157
         mvi  a, 0D0h
         sta  1167h
-        lhld 08B9h
-        shld 0FBCh
+        lhld actor3_init
+        shld actor3
         jmp  loc_1163
 loc_1157:
-        lhld 0FAEh
-        shld 0FBCh
-        lhld 0FACh
-        shld 0FBEh
+        lhld player_pos
+        shld actor3
+        lhld saved_xy_b
+        shld actor3+2
 loc_1163:
         ret
 
         ds   4                          ; 1164-1167 pad
 
 loc_1168:
-        lhld 08B3h
-        shld 0FB0h
-        lhld 08B5h
-        shld 0FB4h
-        lhld 08B7h
-        shld 0FB8h
-        lhld 08B9h
-        shld 0FBCh
+        lhld actor0_init
+        shld actor0
+        lhld actor1_init
+        shld actor1
+        lhld actor2_init
+        shld actor2
+        lhld actor3_init
+        shld actor3
         ret
 loc_1181:
-        lhld 0AD4h
+        lhld player_x
         xchg
-        lhld 0FB0h
+        lhld actor0
         mov  a, d
         sub  h
         jnz  loc_1192
@@ -1079,7 +1117,7 @@ loc_1181:
         sub  l
         jz   loc_11BE
 loc_1192:
-        lhld 0FB4h
+        lhld actor1
         mov  a, d
         sub  h
         jnz  loc_119F
@@ -1087,7 +1125,7 @@ loc_1192:
         sub  l
         jz   loc_11BE
 loc_119F:
-        lhld 0FB8h
+        lhld actor2
         mov  a, d
         sub  h
         jnz  loc_11AC
@@ -1095,7 +1133,7 @@ loc_119F:
         sub  l
         jz   loc_11BE
 loc_11AC:
-        lhld 0FBCh
+        lhld actor3
         mov  a, d
         sub  h
         jnz  loc_11B9
@@ -1186,9 +1224,9 @@ loc_13B0:
         sta  120Eh
         cpi  64h
         jc   loc_13A8
-        lda  0AD4h
+        lda  player_x
         mov  b, a
-        lda  0AD5h
+        lda  player_y
         mov  c, a
         mvi  a, 13h
         jmp  plot_char
@@ -1420,7 +1458,7 @@ loc_153F:
         sta  159Bh
         jmp  loc_14F8
 loc_1546:
-        lda  0AD8h
+        lda  last_key
         cpi  5Eh
         jnz  loc_155F
         lda  159Bh
@@ -1428,10 +1466,10 @@ loc_1546:
         jnz  loc_155F
         inr  a
         sta  159Bh
-        lhld 0AD4h
+        lhld player_x
         shld 159Fh
 loc_155F:
-        lda  0AD8h
+        lda  last_key
         cpi  51h
         jnz  loc_1578
         lda  159Ch
@@ -1439,7 +1477,7 @@ loc_155F:
         jnz  loc_1578
         inr  a
         sta  159Ch
-        lhld 0AD4h
+        lhld player_x
         shld 159Dh
 loc_1578:
         call loc_14B1
@@ -1468,7 +1506,7 @@ var_159B:                               ; 159B-15A0 inline scratch (variables ze
         db   11h, 1Dh, 0Bh, 14h         ; 159D-15A0 misc
 
 loc_15A1:
-        lda  0AD8h
+        lda  last_key
         cpi  30h
         jc   loc_15B7
         cpi  3Ah
@@ -1492,25 +1530,25 @@ loc_15BD:
         ret
         dad  h
 loc_15C7:
-        lda  0AD8h
+        lda  last_key
         cpi  2Eh
         jz   loc_15E6
         cpi  3Ah
         jz   start_rom
-        lhld 0AD4h
-        lda  08BCh
+        lhld player_x
+        lda  goal_x
         cmp  l
         jnz  loc_15E5
-        lda  08BDh
+        lda  goal_y
         cmp  h
         jz   loc_15E6
 loc_15E5:
         ret
 loc_15E6:
-        lda  0240h
+        lda  level_num
         inr  a
-        sta  0240h
-        lxi  h, 01D0h
+        sta  level_num
+        lxi  h, tbl_01D0
         lxi  d, 0000h
         ral
         mov  e, a
@@ -1519,7 +1557,7 @@ loc_15E6:
         inx  h
         ora  m
         jnz  loc_15FF
-        sta  0240h
+        sta  level_num
 loc_15FF:
         mvi  a, 01h
         sta  var_11C3
@@ -1575,9 +1613,9 @@ str_intro:                              ; offset 1612h, welcome / instructions s
         db   39h, 22h, 2Eh, 00h
 
 pickup_item:                            ; offset loc_1896
-        lda  0AD9h
+        lda  score
         inr  a
-        sta  0AD9h
+        sta  score
         mvi  m, 12h
         push b
         mvi  c, 07h
