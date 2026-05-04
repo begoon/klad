@@ -282,8 +282,8 @@ render_width:
         db   0FFh
 
 clear_state:                            ; offset loc_088E
-        lxi  h, maze_map                ; HL = 0243h
-        lxi  d, 0882h                   ; DE = end address (loop while HL <= DE)
+        lxi  h, maze_map                ; HL = first byte (0243h)
+        lxi  d, maze_map_base-1         ; DE = last byte (0882h, the byte before maze_map_base)
 clear_state_loop:                       ; offset loc_0894
         xra  a
         mov  m, a
