@@ -75,7 +75,9 @@ python3 extract.py     # regenerate everything under extracted/
       table, scratch vars all separated)
 - [x] Pass 2 — semantic labels (entry points renamed; every variable
       lives at its actual address with a name)
-- [ ] Pass 3 — full annotation (most routines still `loc_XXXX`)
+- [x] Pass 3 — procedure annotation (every routine called from real code
+      has a semantic name; remaining `loc_XXXX` labels are just
+      basic-block targets inside renamed procedures)
 
 ## Tape quirk
 

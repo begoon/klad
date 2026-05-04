@@ -29,7 +29,7 @@ tbl_00E7:                               ; offset loc_00E7 (24 bytes referenced f
 ; tbl_01D0, then loops over 5-byte records (type, r1, r2, c1, c2) filling
 ; rectangles via plot_char. Terminator: type=0. Full format in README.md
 ; ("Level encoding").
-loc_0100:
+render_level:                           ; offset render_level
         mvi  c, 1Fh
         call putc                       ; clear screen
         lxi  h, tbl_01D0
@@ -374,7 +374,7 @@ loc_08D0:
         pop  d
         pop  psw
         ret
-loc_08EB:
+process_player:                         ; offset process_player
         lda  player_x
         mov  b, a
         lda  player_y
@@ -638,24 +638,24 @@ game_restart:                           ; offset loc_0ADA
         xra  a
         sta  score
         call clear_state
-        call loc_0100
+        call render_level
         call load_level_state
         lda  player_x_init
         sta  player_x
         lda  player_y_init
         sta  player_y
-        call loc_1586
-        call loc_1168
+        call clear_actor_state
+        call init_actors
 main_loop:                              ; offset loc_0AF9
         call scan_kbd
         sta  last_key
-        call loc_08EB
-        call loc_1039
-        call loc_1181
-        call loc_15A1
-        call loc_1546
-        call loc_1546
-        call loc_15C7
+        call process_player
+        call update_actors
+        call check_player_caught
+        call handle_speed_keys
+        call handle_wall_break_keys
+        call handle_wall_break_keys
+        call check_end_level
         lda  var_11C3
         ora  a
         jnz  game_restart
@@ -725,7 +725,7 @@ level_1:                                ; level 1 data, 5-byte records, 0x0B35-0
 
         db   01h, 02h, 01h, 30h, 01h, 2Fh, 02h, 1Ah, 00h, 00h, 03h, 01h, 3Ch    ; 0E3D-0E49 unused tail / filler
 
-loc_0E4A:
+actor_step_ai:                          ; offset actor_step_ai
         lda  saved_xy_a
         mov  b, a
         lda  saved_xy_a+1
@@ -918,7 +918,7 @@ actor2:
 actor3:
         db   00h, 00h, 00h, 00h
 
-loc_0FC0:
+actor_player_collision:                 ; offset actor_player_collision
         lda  player_pos
         mov  b, a
         lda  player_pos+1
@@ -970,7 +970,7 @@ loc_0FFD:
         lhld saved_xy_a
         shld player_pos
         ret
-loc_1004:
+redraw_actor:                           ; offset redraw_actor
         lda  saved_xy_a
         mov  b, a
         lda  saved_xy_a+1
@@ -985,7 +985,7 @@ loc_1004:
         mvi  a, 14h
         call plot_char
         ret
-loc_1021:
+actor_drown_check:                      ; offset actor_drown_check
         lda  player_pos
         mov  b, a
         lda  player_pos+1
@@ -1000,7 +1000,7 @@ loc_1021:
 loc_1037:
         stc
         ret
-loc_1039:
+update_actors:                          ; offset update_actors
         lhld actor0
         shld saved_xy_a
         shld player_pos
@@ -1013,10 +1013,10 @@ loc_1039:
         sta  actor_cooldown
         jmp  loc_107F
 loc_1056:
-        call loc_0E4A
-        call loc_0FC0
-        call loc_1004
-        call loc_1021
+        call actor_step_ai
+        call actor_player_collision
+        call redraw_actor
+        call actor_drown_check
         jc   loc_1073
         mvi  a, 0D0h
         sta  actor_cooldown
@@ -1044,10 +1044,10 @@ loc_107F:
         sta  actor_cooldown+1
         jmp  loc_10CB
 loc_10A2:
-        call loc_0E4A
-        call loc_0FC0
-        call loc_1004
-        call loc_1021
+        call actor_step_ai
+        call actor_player_collision
+        call redraw_actor
+        call actor_drown_check
         jc   loc_10BF
         mvi  a, 0D0h
         sta  actor_cooldown+1
@@ -1075,10 +1075,10 @@ loc_10CB:
         sta  actor_cooldown+2
         jmp  loc_1117
 loc_10EE:
-        call loc_0E4A
-        call loc_0FC0
-        call loc_1004
-        call loc_1021
+        call actor_step_ai
+        call actor_player_collision
+        call redraw_actor
+        call actor_drown_check
         jc   loc_110B
         mvi  a, 0D0h
         sta  actor_cooldown+2
@@ -1106,10 +1106,10 @@ loc_1117:
         sta  actor_cooldown+3
         jmp  loc_1163
 loc_113A:
-        call loc_0E4A
-        call loc_0FC0
-        call loc_1004
-        call loc_1021
+        call actor_step_ai
+        call actor_player_collision
+        call redraw_actor
+        call actor_drown_check
         jc   loc_1157
         mvi  a, 0D0h
         sta  actor_cooldown+3
@@ -1130,7 +1130,7 @@ actor_cooldown:                         ; 4 bytes, one per actor; 0=ready to mov
         db   00h                        ; written by loc_1056/10A2/10EE/113A on successful move)
         db   00h
 
-loc_1168:
+init_actors:                            ; offset init_actors
         lhld actor0_init
         shld actor0
         lhld actor1_init
@@ -1140,7 +1140,7 @@ loc_1168:
         lhld actor3_init
         shld actor3
         ret
-loc_1181:
+check_player_caught:                    ; offset check_player_caught
         lhld player_x
         xchg
         lhld actor0
@@ -1217,7 +1217,7 @@ loc_11E9:
         pop  d
         pop  psw
         ret
-loc_11F3:
+actor_state_addr:                       ; offset actor_state_addr
         push psw
         push d
         lxi  d, 0000h
@@ -1241,21 +1241,21 @@ loc_11F3:
         ret
 
 var_120E:
-        db   64h                        ; iteration counter (init 100, used by loc_11F3 indexer)
+        db   64h                        ; iteration counter (init 100, used by actor_state_addr indexer)
 
 actor_state_table:                      ; 0x120F: 100 × 4-byte records, indexed by var_120E*4
-        ds   0190h                      ; 400 bytes (zero-initialized — see loc_1586)
+        ds   0190h                      ; 400 bytes (zero-initialized — see clear_actor_state)
 
         ds   4                          ; 139F-13A2 unused tail of the table region
 
 tick:                                   ; 0x13A3: free-running 8-bit frame counter
         db   00h
 
-loc_13A4:
+animate_visited_cells:                  ; offset animate_visited_cells
         xra  a
         sta  var_120E
 loc_13A8:
-        call loc_11F3
+        call actor_state_addr
         mov  a, m
         ora  a
         jnz  loc_13C9
@@ -1363,14 +1363,14 @@ loc_144B:
         mov  m, a
         call plot_char
         jmp  loc_13B0
-loc_1460:
+actor_state_record:                     ; offset actor_state_record
         push psw
         push d
         push h
         xra  a
         sta  var_120E
 loc_1467:
-        call loc_11F3
+        call actor_state_addr
         mov  a, m
         ora  a
         jnz  loc_1497
@@ -1383,7 +1383,7 @@ loc_146F:
         xra  a
         sta  var_120E
 loc_147F:
-        call loc_11F3
+        call actor_state_addr
         mov  a, m
         ora  a
         jz   loc_14A7
@@ -1417,7 +1417,7 @@ loc_14A7:
         inx  h
         mov  m, c
         jmp  loc_1493
-loc_14B1:
+process_wall_break:                     ; offset process_wall_break
         lda  break_L_flag
         ora  a
         jnz  loc_14C0
@@ -1456,8 +1456,8 @@ loc_14F4:
         xra  a
         sta  break_L_flag
 loc_14F8:
-        call loc_1460
-        call loc_11F3
+        call actor_state_record
+        call actor_state_addr
         inx  h
         mov  a, m
         adi  1Eh
@@ -1498,7 +1498,7 @@ loc_153F:
         xra  a
         sta  break_R_flag
         jmp  loc_14F8
-loc_1546:
+handle_wall_break_keys:                 ; offset handle_wall_break_keys
         lda  last_key
         cpi  5Eh
         jnz  loc_155F
@@ -1521,13 +1521,13 @@ loc_155F:
         lhld player_x
         shld break_L_pos
 loc_1578:
-        call loc_14B1
-        call loc_13A4
+        call process_wall_break
+        call animate_visited_cells
         lda  tick
         inr  a
         sta  tick
         ret
-loc_1586:
+clear_actor_state:                      ; offset clear_actor_state
         xra  a
         sta  break_R_flag
         sta  break_L_flag
@@ -1555,7 +1555,7 @@ break_L_pos:                            ; 0x159D word (col, row) — used while 
 break_R_pos:                            ; 0x159F word (col, row) — used while break_R_flag set
         dw   140Bh
 
-loc_15A1:
+handle_speed_keys:                      ; offset handle_speed_keys
         lda  last_key
         cpi  30h
         jc   loc_15B7
@@ -1580,12 +1580,12 @@ loc_15BD:
         ret
 
 speed_delay:                            ; 0x15C6: outer-loop count for the per-frame delay,
-        db   29h                        ; set from digit keys '0'..'9' (loc_15A1) as (digit*8)+1
+        db   29h                        ; set from digit keys '0'..'9' (handle_speed_keys) as (digit*8)+1
 
-loc_15C7:
+check_end_level:                        ; offset check_end_level
         lda  last_key
         cpi  2Eh
-        jz   loc_15E6
+        jz   advance_to_next_level
         cpi  3Ah
         jz   start_rom
         lhld player_x
@@ -1594,10 +1594,10 @@ loc_15C7:
         jnz  loc_15E5
         lda  goal_y
         cmp  h
-        jz   loc_15E6
+        jz   advance_to_next_level
 loc_15E5:
         ret
-loc_15E6:
+advance_to_next_level:                  ; offset advance_to_next_level
         lda  level_num
         inr  a
         sta  level_num
