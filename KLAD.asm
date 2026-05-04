@@ -274,16 +274,11 @@ loc_08A8:
         dcr  b
         jnz  loc_08A8
         ret
-        rrc
-        inr  b
-        lxi  b, 002Eh
-        nop
-        nop
-        nop
-        nop
-        nop
-        nop
-        lxi  b, 0F535h
+
+        db   0Fh, 04h, 01h, 2Eh, 00h, 00h, 00h, 00h, 00h, 00h, 00h, 01h, 35h    ; 08B1-08BD filler
+
+loc_08BE:                               ; called from many places: maps (B,C) → screen address
+        push psw
         push d
         mov  a, b
         cpi  18h
@@ -563,10 +558,13 @@ loc_0AC1:
         sta  0AD4h
 loc_0AD3:
         ret
-        dcr  d
-        db   08h
-        lxi  b, 3A00h
-        nop
+
+var_0AD4:                               ; 0AD4-0AD9 game state vars
+        db   15h, 08h                   ; 0AD4 player x, 0AD5 player y (init 15h,08h)
+        db   01h, 00h                   ; 0AD6, 0AD7
+        db   3Ah                        ; 0AD8 last key
+        db   00h                        ; 0AD9 counter (reset by loc_0ADA)
+
 loc_0ADA:
         xra  a
         sta  0AD9h
@@ -1050,10 +1048,9 @@ loc_1157:
         shld 0FBEh
 loc_1163:
         ret
-        nop
-        nop
-        nop
-        nop
+
+        ds   4                          ; 1164-1167 pad
+
 loc_1168:
         lhld 08B3h
         shld 0FB0h
@@ -1106,7 +1103,10 @@ loc_11BA:
 loc_11BE:
         mvi  a, 01h
         jmp  loc_11BA
-        nop
+
+var_11C3:
+        db   00h                        ; 1-byte var (initial 00), modified by sta 11C3h
+
 loc_11C4:
         push psw
         push d
@@ -1455,10 +1455,11 @@ loc_1592:
         dcr  b
         jnz  loc_1592
         ret
-        nop
-        nop
-        lxi  d, 0B1Dh
-        inr  d
+
+var_159B:                               ; 159B-15A0 inline scratch (variables zeroed by loc_1586)
+        db   00h, 00h                   ; 159B, 159C bytes
+        db   11h, 1Dh, 0Bh, 14h         ; 159D-15A0 misc
+
 loc_15A1:
         lda  0AD8h
         cpi  30h
