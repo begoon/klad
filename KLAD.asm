@@ -1000,20 +1000,20 @@ loc_1039:
         shld player_pos
         lhld actor0+2
         shld saved_xy_b
-        lda  1164h
+        lda  actor_cooldown
         ora  a
         jz   loc_1056
         inr  a
-        sta  1164h
+        sta  actor_cooldown
         jmp  loc_107F
 loc_1056:
-        call 0E4Ah
+        call loc_0E4A
         call loc_0FC0
         call loc_1004
         call loc_1021
         jc   loc_1073
         mvi  a, 0D0h
-        sta  1164h
+        sta  actor_cooldown
         lhld actor0_init
         shld actor0
         jmp  loc_107F
@@ -1031,20 +1031,20 @@ loc_107F:
         shld player_pos
         lhld actor1+2
         shld saved_xy_b
-        lda  1165h
+        lda  actor_cooldown+1
         ora  a
         jz   loc_10A2
         inr  a
-        sta  1165h
+        sta  actor_cooldown+1
         jmp  loc_10CB
 loc_10A2:
-        call 0E4Ah
+        call loc_0E4A
         call loc_0FC0
         call loc_1004
         call loc_1021
         jc   loc_10BF
         mvi  a, 0D0h
-        sta  1165h
+        sta  actor_cooldown+1
         lhld actor1_init
         shld actor1
         jmp  loc_10CB
@@ -1062,20 +1062,20 @@ loc_10CB:
         shld player_pos
         lhld actor2+2
         shld saved_xy_b
-        lda  1166h
+        lda  actor_cooldown+2
         ora  a
         jz   loc_10EE
         inr  a
-        sta  1166h
+        sta  actor_cooldown+2
         jmp  loc_1117
 loc_10EE:
-        call 0E4Ah
+        call loc_0E4A
         call loc_0FC0
         call loc_1004
         call loc_1021
         jc   loc_110B
         mvi  a, 0D0h
-        sta  1166h
+        sta  actor_cooldown+2
         lhld actor2_init
         shld actor2
         jmp  loc_1117
@@ -1093,20 +1093,20 @@ loc_1117:
         shld player_pos
         lhld actor3+2
         shld saved_xy_b
-        lda  1167h
+        lda  actor_cooldown+3
         ora  a
         jz   loc_113A
         inr  a
-        sta  1167h
+        sta  actor_cooldown+3
         jmp  loc_1163
 loc_113A:
-        call 0E4Ah
+        call loc_0E4A
         call loc_0FC0
         call loc_1004
         call loc_1021
         jc   loc_1157
         mvi  a, 0D0h
-        sta  1167h
+        sta  actor_cooldown+3
         lhld actor3_init
         shld actor3
         jmp  loc_1163
@@ -1118,7 +1118,11 @@ loc_1157:
 loc_1163:
         ret
 
-        ds   4                          ; 1164-1167 pad
+actor_cooldown:                         ; 4 bytes, one per actor; 0=ready to move,
+        db   00h                        ; non-zero = stunned-tick (incremented each frame
+        db   00h                        ; until it overflows back to 0; D0h is the reset value
+        db   00h                        ; written by loc_1056/10A2/10EE/113A on successful move)
+        db   00h
 
 loc_1168:
         lhld actor0_init
@@ -1211,9 +1215,9 @@ loc_11F3:
         push psw
         push d
         lxi  d, 0000h
-        lxi  h, 120Fh
+        lxi  h, actor_state_table
         xra  a
-        lda  120Eh
+        lda  var_120E
         ral
         mov  e, a
         mov  a, d
@@ -1231,21 +1235,28 @@ loc_11F3:
         ret
 
 var_120E:
-        db   64h                        ; var (init 64h, 100 dec)
-        ds   0195h                      ; 120F-13A3 zero table (4-byte records, indexed by var_120E)
+        db   64h                        ; iteration counter (init 100, used by loc_11F3 indexer)
+
+actor_state_table:                      ; 0x120F: 100 × 4-byte records, indexed by var_120E*4
+        ds   0190h                      ; 400 bytes (zero-initialized — see loc_1586)
+
+        ds   4                          ; 139F-13A2 unused tail of the table region
+
+tick:                                   ; 0x13A3: free-running 8-bit frame counter
+        db   00h
 
 loc_13A4:
         xra  a
-        sta  120Eh
+        sta  var_120E
 loc_13A8:
         call loc_11F3
         mov  a, m
         ora  a
         jnz  loc_13C9
 loc_13B0:
-        lda  120Eh
+        lda  var_120E
         inr  a
-        sta  120Eh
+        sta  var_120E
         cpi  64h
         jc   loc_13A8
         lda  player_x
@@ -1259,7 +1270,7 @@ loc_13C9:
         mov  a, m
         dcr  a
         mov  b, a
-        lda  13A3h
+        lda  tick
         ani  07h
         mov  a, b
         jz   loc_13D7
@@ -1351,28 +1362,28 @@ loc_1460:
         push d
         push h
         xra  a
-        sta  120Eh
+        sta  var_120E
 loc_1467:
         call loc_11F3
         mov  a, m
         ora  a
         jnz  loc_1497
 loc_146F:
-        lda  120Eh
+        lda  var_120E
         inr  a
-        sta  120Eh
+        sta  var_120E
         cpi  64h
         jc   loc_1467
         xra  a
-        sta  120Eh
+        sta  var_120E
 loc_147F:
         call loc_11F3
         mov  a, m
         ora  a
         jz   loc_14A7
-        lda  120Eh
+        lda  var_120E
         inr  a
-        sta  120Eh
+        sta  var_120E
         cpi  64h
         jc   loc_147F
 loc_1493:
@@ -1401,15 +1412,15 @@ loc_14A7:
         mov  m, c
         jmp  loc_1493
 loc_14B1:
-        lda  159Ch
+        lda  break_L_flag
         ora  a
         jnz  loc_14C0
-        lda  159Bh
+        lda  break_R_flag
         ora  a
         jnz  loc_150B
         ret
 loc_14C0:
-        lhld 159Dh
+        lhld break_L_pos
         mov  c, h
         mov  b, l
         call coord_to_screen
@@ -1418,13 +1429,13 @@ loc_14C0:
         dcr  c
         mov  h, c
         mov  l, b
-        shld 159Dh
+        shld break_L_pos
         call coord_to_screen
         mov  a, m
         cpi  01h
         jnz  loc_14E0
         xra  a
-        sta  159Ch
+        sta  break_L_flag
         ret
 loc_14E0:
         cpi  0Bh
@@ -1437,7 +1448,7 @@ loc_14E0:
         jmp  plot_char
 loc_14F4:
         xra  a
-        sta  159Ch
+        sta  break_L_flag
 loc_14F8:
         call loc_1460
         call loc_11F3
@@ -1451,7 +1462,7 @@ loc_1509:
         mov  m, a
         ret
 loc_150B:
-        lhld 159Fh
+        lhld break_R_pos
         mov  c, h
         mov  b, l
         call coord_to_screen
@@ -1460,13 +1471,13 @@ loc_150B:
         inr  c
         mov  l, b
         mov  h, c
-        shld 159Fh
+        shld break_R_pos
         call coord_to_screen
         mov  a, m
         cpi  01h
         jnz  loc_152B
         xra  a
-        sta  159Bh
+        sta  break_R_flag
         ret
 loc_152B:
         cpi  0Bh
@@ -1479,42 +1490,42 @@ loc_152B:
         jmp  plot_char
 loc_153F:
         xra  a
-        sta  159Bh
+        sta  break_R_flag
         jmp  loc_14F8
 loc_1546:
         lda  last_key
         cpi  5Eh
         jnz  loc_155F
-        lda  159Bh
+        lda  break_R_flag
         ora  a
         jnz  loc_155F
         inr  a
-        sta  159Bh
+        sta  break_R_flag
         lhld player_x
-        shld 159Fh
+        shld break_R_pos
 loc_155F:
         lda  last_key
         cpi  51h
         jnz  loc_1578
-        lda  159Ch
+        lda  break_L_flag
         ora  a
         jnz  loc_1578
         inr  a
-        sta  159Ch
+        sta  break_L_flag
         lhld player_x
-        shld 159Dh
+        shld break_L_pos
 loc_1578:
         call loc_14B1
         call loc_13A4
-        lda  13A3h
+        lda  tick
         inr  a
-        sta  13A3h
+        sta  tick
         ret
 loc_1586:
         xra  a
-        sta  159Bh
-        sta  159Ch
-        lxi  h, 120Fh
+        sta  break_R_flag
+        sta  break_L_flag
+        lxi  h, actor_state_table
         mvi  b, 0C8h
 loc_1592:
         mov  m, a
@@ -1525,9 +1536,18 @@ loc_1592:
         jnz  loc_1592
         ret
 
-var_159B:                               ; 159B-15A0 inline scratch (variables zeroed by loc_1586)
-        db   00h, 00h                   ; 159B, 159C bytes
-        db   11h, 1Dh, 0Bh, 14h         ; 159D-15A0 misc
+; Wall-break state: pressing '^' (5Eh) breaks walls rightwards, 'Q' (51h)
+; breaks leftwards. Each direction has a 1-byte busy flag and a 2-byte
+; current break-cell position (col,row), stepped one cell per frame
+; until it hits a wall or reaches the playfield edge.
+break_R_flag:                           ; 0x159B — set by '^' key, walks rightwards
+        db   00h
+break_L_flag:                           ; 0x159C — set by 'Q' key, walks leftwards
+        db   00h
+break_L_pos:                            ; 0x159D word (col, row) — used while break_L_flag set
+        dw   1D11h                      ; init values are junk left over from compile
+break_R_pos:                            ; 0x159F word (col, row) — used while break_R_flag set
+        dw   140Bh
 
 loc_15A1:
         lda  last_key
@@ -1540,9 +1560,9 @@ loc_15A1:
         rlc
         rlc
         inr  a
-        sta  15C6h
+        sta  speed_delay
 loc_15B7:
-        lda  15C6h
+        lda  speed_delay
         mov  b, a
 loc_15BB:
         mvi  a, 0FFh
@@ -1552,7 +1572,10 @@ loc_15BD:
         dcr  b
         jnz  loc_15BB
         ret
-        dad  h
+
+speed_delay:                            ; 0x15C6: outer-loop count for the per-frame delay,
+        db   29h                        ; set from digit keys '0'..'9' (loc_15A1) as (digit*8)+1
+
 loc_15C7:
         lda  last_key
         cpi  2Eh
